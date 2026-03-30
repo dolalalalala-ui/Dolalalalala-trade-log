@@ -40,13 +40,18 @@ window._fb = {
     return onSnapshot(q, snap => cb(snap.docs.map(d => ({ ...d.data(), _docId: d.id }))));
   },
 
-  // ── Upload image file → returns download URL ──
+  // ── Upload image file → returns download URL (with 15s timeout) ──
   uploadImage: async (tradeId, file, idx) => {
-    const ext  = file.name.split('.').pop() || 'jpg';
+    const ext  = file.name ? (file.name.split('.').pop() || 'jpg') : 'jpg';
     const path = `trades/${tradeId}/img_${idx}_${Date.now()}.${ext}`;
-    const r    = ref(storage, path);
-    await uploadBytes(r, file, { contentType: file.type });
-    const url  = await getDownloadURL(r);
+    const storageRef = ref(storage, path);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('upload timeout')), 15000));
+    await Promise.race([
+      uploadBytes(storageRef, file, { contentType: file.type || 'image/jpeg' }),
+      timeout
+    ]);
+    const url = await getDownloadURL(storageRef);
     return { url, path };
   },
 
@@ -428,6 +433,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .addon-del{background:none;border:none;color:var(--bear);font-size:16px;
   cursor:pointer;padding:2px;line-height:1;opacity:.7;margin-left:auto}
 
+/* EXIT SUMMARY */
+.exit-summary-box{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);
+  border-radius:10px;padding:12px 16px;margin-bottom:10px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+.exit-summary-box .ab-label{font-family:var(--mono);font-size:9px;color:var(--dim);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.exit-summary-box .ab-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--bear)}
+.exit-summary-box .ab-val.pos{color:var(--bull)}
+
 /* SIGNAL MANAGER MODAL */
 .sig-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:450;
   display:none;align-items:flex-end}
@@ -550,6 +564,47 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
           color:var(--blue);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:11px;
           font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer">
           ＋ 新增加碼
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 分批出場區塊 ── -->
+    <div id="e-exit-section">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;
+        text-transform:uppercase;margin-bottom:10px;padding-top:4px;border-top:1px solid var(--line);
+        margin-top:4px">📤 分批出場記錄</div>
+      <!-- exit summary -->
+      <div class="exit-summary-box" id="e-exit-summary">
+        <div><div class="ab-label">已出均價</div><div class="ab-val" id="e-exit-avg-price">—</div></div>
+        <div><div class="ab-label">已出口數</div><div class="ab-val" id="e-exit-out-size">0</div></div>
+        <div><div class="ab-label">已實現損益</div><div class="ab-val" id="e-exit-realized">$0</div></div>
+      </div>
+      <!-- exit list -->
+      <div id="e-exit-list" style="margin-bottom:10px"></div>
+      <!-- add new exit -->
+      <div style="background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="field" style="padding:0"><label>出場價格</label>
+            <input type="number" id="ee-price" placeholder="0" inputmode="decimal"></div>
+          <div class="field" style="padding:0"><label>口數/張數</label>
+            <input type="number" id="ee-size" placeholder="1" inputmode="decimal"></div>
+        </div>
+        <div class="field" style="padding:0;margin-bottom:8px"><label>出場日期</label>
+          <input type="date" id="ee-date"></div>
+        <div class="field" style="padding:0;margin-bottom:8px"><label>出場原因</label>
+          <select id="ee-reason">
+            <option value="">— 選擇 —</option>
+            <option value="target">目標達到</option>
+            <option value="diverge">頂背離出場</option>
+            <option value="ma15">15MA跌破</option>
+            <option value="stop">停損觸發</option>
+            <option value="partial">部分獲利了結</option>
+          </select>
+        </div>
+        <button onclick="addExitFromEdit()" style="width:100%;background:rgba(244,63,94,.1);
+          color:var(--bear);border:1px solid rgba(244,63,94,.3);border-radius:10px;padding:11px;
+          font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer">
+          ＋ 新增出場
         </button>
       </div>
     </div>
@@ -1284,9 +1339,22 @@ async function saveTrade() {
   const tradeId = Date.now().toString();
   const pnlRaw  = document.getElementById('f-pnl-amt').value;
 
-  // Upload images first
-  if (pendingFiles.length > 0) showToast(`上傳 ${pendingFiles.length} 張截圖中...`);
-  const imageRefs = await uploadAllImages(tradeId);
+  // Upload images (skip if none selected)
+  let imageRefs = [];
+  if (pendingFiles.length > 0) {
+    showToast(`上傳 ${pendingFiles.length} 張截圖中...`);
+    try {
+      imageRefs = await Promise.race([
+        uploadAllImages(tradeId),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 30000))
+      ]);
+    } catch(e) {
+      console.warn('Image upload skipped:', e.message);
+      // save without images rather than hanging
+      imageRefs = pendingPreviews.map(p => ({ url: p.dataUrl, path: '' }));
+      showToast('截圖改用本機儲存');
+    }
+  }
 
   const t = {
     id: tradeId,
@@ -1316,12 +1384,28 @@ async function saveTrade() {
 
   try {
     setConn('loading','儲存中...');
-    if (window._fb) { await window._fb.add(t); showSyncBar(); }
-    else { allTrades.push(t); renderPage('home'); }
+    if (window._fb) {
+      await Promise.race([
+        window._fb.add(t),
+        new Promise((_, r) => setTimeout(() => r(new Error('Firestore timeout')), 10000))
+      ]);
+      showSyncBar();
+    } else {
+      allTrades.push(t);
+      renderPage('home');
+    }
     showToast('✓ 已儲存並同步！');
     resetForm();
     setTimeout(() => go('home'), 800);
-  } catch(e) { showToast('⚠️ 儲存失敗', true); setConn('offline','離線'); }
+  } catch(e) {
+    console.error('Save error:', e);
+    if (e.message && e.message.includes('timeout')) {
+      showToast('⚠️ 連線逾時，請檢查網路後重試', true);
+    } else {
+      showToast('⚠️ 儲存失敗：' + (e.message||'未知錯誤'), true);
+    }
+    setConn('offline','離線');
+  }
 }
 
 // ── RESET ──
@@ -1394,6 +1478,12 @@ function openEdit(docId) {
   } else {
     addonSec.style.display = 'none';
   }
+  // always show exit section
+  document.getElementById('ee-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ee-price').value = '';
+  document.getElementById('ee-size').value  = '';
+  document.getElementById('ee-reason').value = '';
+  renderEditExitSummary(t);
   document.getElementById('edit-modal').classList.add('open');
 }
 function closeEdit() {
@@ -1422,6 +1512,91 @@ function renderEditAddonSummary(t) {
       ).join('');
   }
 }
+// ── EXIT FUNCTIONS ──
+function calcExitInfo(t) {
+  const exits = t.exits || [];
+  if (!exits.length) return null;
+  const totalOut = exits.reduce((s,e) => s + (e.size||1), 0);
+  const avgOut   = (exits.reduce((s,e) => s + e.price*(e.size||1), 0) / totalOut).toFixed(2);
+  // realized pnl
+  const realized = exits.reduce((sum, e) => {
+    const diff = t.dir==='long' ? e.price - t.entryPrice : t.entryPrice - e.price;
+    return sum + diff * (e.size||1);
+  }, 0);
+  return { totalOut, avgOut, realized: Math.round(realized) };
+}
+
+function renderEditExitSummary(t) {
+  const exits = t.exits || [];
+  const info  = calcExitInfo(t);
+  if (info) {
+    document.getElementById('e-exit-avg-price').textContent = info.avgOut;
+    document.getElementById('e-exit-out-size').textContent  = info.totalOut;
+    const realEl = document.getElementById('e-exit-realized');
+    realEl.textContent = (info.realized>=0?'+$':'-$') + Math.abs(info.realized).toLocaleString();
+    realEl.className   = 'ab-val ' + (info.realized>=0?'pos':'');
+  } else {
+    document.getElementById('e-exit-avg-price').textContent = '—';
+    document.getElementById('e-exit-out-size').textContent  = '0';
+    document.getElementById('e-exit-realized').textContent  = '$0';
+    document.getElementById('e-exit-realized').className    = 'ab-val';
+  }
+  const exitReasonMap = { target:'目標達到', diverge:'頂背離', ma15:'15MA跌破', stop:'停損', partial:'部分獲利', '':'—' };
+  const el = document.getElementById('e-exit-list');
+  if (!exits.length) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:12px;margin-bottom:8px">尚無分批出場記錄</div>';
+  } else {
+    el.innerHTML = exits.map((e,i) =>
+      '<div class="addon-item" style="border-left:2px solid var(--bear)">'
+      + '<div>'
+      +   '<div style="font-weight:700;font-family:var(--mono);color:var(--bear)">' + e.price + '</div>'
+      +   '<div style="font-size:11px;color:var(--soft)">' + (e.date||'') + ' · ' + (e.size||1) + ' 口/張 · ' + (exitReasonMap[e.reason]||'—') + '</div>'
+      + '</div>'
+      + '<button class="addon-del" onclick="delExitFromEdit(' + i + ')">✕</button>'
+      + '</div>'
+    ).join('');
+  }
+}
+
+async function addExitFromEdit() {
+  const price  = parseFloat(document.getElementById('ee-price').value);
+  const size   = parseFloat(document.getElementById('ee-size').value) || 1;
+  const date   = document.getElementById('ee-date').value;
+  const reason = document.getElementById('ee-reason').value;
+  if (!price) { showToast('請填出場價格', true); return; }
+  const t = allTrades.find(t => t._docId === editingDocId);
+  if (!t) return;
+  const exits = [...(t.exits || []), { price, size, date, reason }];
+  // auto check if fully closed
+  const totalOut  = exits.reduce((s,e) => s+(e.size||1), 0);
+  const totalSize = (t.size||1) + (t.addons||[]).reduce((s,a)=>s+(a.size||1),0);
+  const updates   = { exits };
+  if (totalOut >= totalSize) {
+    updates.status = 'closed';
+    showToast('✓ 出場完畢，自動標記已平倉');
+  } else {
+    showToast('✓ 出場 ' + size + ' 口，剩餘 ' + (totalSize - totalOut) + ' 口持倉中');
+  }
+  try {
+    if (window._fb) { await window._fb.update(editingDocId, updates); showSyncBar(); }
+    document.getElementById('ee-price').value  = '';
+    document.getElementById('ee-size').value   = '';
+    renderEditExitSummary({ ...t, exits });
+    if (updates.status) document.getElementById('e-status').value = 'closed';
+  } catch(e) { showToast('⚠️ 失敗', true); }
+}
+
+async function delExitFromEdit(idx) {
+  const t = allTrades.find(t => t._docId === editingDocId);
+  if (!t) return;
+  const exits = (t.exits || []).filter((_,i) => i !== idx);
+  try {
+    if (window._fb) { await window._fb.update(editingDocId, { exits }); showSyncBar(); }
+    showToast('已刪除出場記錄');
+    renderEditExitSummary({ ...t, exits });
+  } catch(e) { showToast('⚠️ 失敗', true); }
+}
+
 async function addAddonFromEdit() {
   const price = parseFloat(document.getElementById('ea-price').value);
   const size  = parseFloat(document.getElementById('ea-size').value) || 1;
@@ -1659,6 +1834,33 @@ function renderHistoryList() {
   filtered.forEach(t => el.appendChild(buildTradeCard(t)));
 }
 
+function buildExitRow(t) {
+  const exits = t.exits || [];
+  const exitReasonMap = { target:'目標達到', diverge:'頂背離', ma15:'15MA跌破', stop:'停損', partial:'部分獲利', '':'—' };
+  if (!exits.length) {
+    // fallback to old single exit
+    return '<div class="tcf-row"><span class="tcf-key">出場</span><span class="tcf-val">'
+      + (t.exitPrice||'持倉中') + ' （' + (exitLabel[t.exitReason]||'—') + '）</span></div>';
+  }
+  const totalOut = exits.reduce((s,e) => s+(e.size||1), 0);
+  const avgOut   = (exits.reduce((s,e) => s+e.price*(e.size||1),0) / totalOut).toFixed(2);
+  const realized = exits.reduce((sum,e) => {
+    const diff = t.dir==='long' ? e.price - t.entryPrice : t.entryPrice - e.price;
+    return sum + diff*(e.size||1);
+  }, 0);
+  const pnlColor = realized>=0 ? 'var(--bull)' : 'var(--bear)';
+  const pnlStr   = (realized>=0?'+$':'-$') + Math.abs(Math.round(realized)).toLocaleString();
+  let rows = '<div class="tcf-row"><span class="tcf-key">分批出場</span><span class="tcf-val">'
+    + '<span style="color:var(--bear);font-family:var(--mono);font-weight:700">均出 ' + avgOut + ' · 共 ' + totalOut + ' 口</span>'
+    + ' · <span style="color:' + pnlColor + ';font-weight:700">' + pnlStr + '</span>'
+    + '</span></div>';
+  exits.forEach((e,i) => {
+    rows += '<div class="tcf-row" style="opacity:.75"><span class="tcf-key" style="font-size:11px">出場' + (i+1) + '</span>'
+      + '<span class="tcf-val" style="font-size:12px">' + e.price + ' × ' + (e.size||1) + ' 口 · ' + (e.date||'') + ' · ' + (exitReasonMap[e.reason]||'—') + '</span></div>';
+  });
+  return rows;
+}
+
 function buildTradeCard(t) {
   const pnl    = calcPnl(t);
   const open   = isOpen(t);
@@ -1709,7 +1911,7 @@ function buildTradeCard(t) {
     + '<div class="tcf-body" id="tcf-' + docId + '">'
     +   '<div class="tcf-row"><span class="tcf-key">進場</span><span class="tcf-val">' + t.entryPrice + ' → 停損 ' + (t.stopPrice||'—') + targetStr + '</span></div>'
     +   addonRow + holdRow
-    +   '<div class="tcf-row"><span class="tcf-key">出場</span><span class="tcf-val">' + (t.exitPrice||'持倉中') + ' （' + (exitLabel[t.exitReason]||'—') + '）</span></div>'
+    +   buildExitRow(t)
     +   pnlRow
     +   (t.market ? '<div class="tcf-row"><span class="tcf-key">市場</span><span class="tcf-val">' + mktLabel[t.market] + (t.marketNote?' · '+t.marketNote:'') + '</span></div>' : '')
     +   (t.reason ? '<div class="tcf-row"><span class="tcf-key">進場理由</span><span class="tcf-val">' + t.reason + '</span></div>' : '')
@@ -1777,7 +1979,10 @@ renderSigChips();
 window.addEventListener('fb-ready', async () => {
   setConn('loading','連線中...');
   try {
-    const saved = await window._fb.getPresets();
+    const saved = await Promise.race([
+      window._fb.getPresets(),
+      new Promise((_, r) => setTimeout(() => r(new Error('preset timeout')), 8000))
+    ]);
     Object.keys(saved).forEach(k => {
       if (!saved[k]) return;
       if (k === '_sigs_custom')       customSignals  = saved[k];
