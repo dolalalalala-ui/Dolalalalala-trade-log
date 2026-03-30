@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +8,6 @@
 <title>交易日誌</title>
 
 <!-- Firebase -->
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc,
@@ -255,14 +253,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .tcf-key{color:var(--soft);min-width:70px;flex-shrink:0}
 .tcf-val{color:var(--text);line-height:1.5;flex:1}
 .tcf-actions{display:flex;border-top:1px solid var(--line)}
-.tcf-edit{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;
-  color:var(--blue);font-size:13px;cursor:pointer;background:rgba(56,189,248,.04);
-  border:none;transition:background .15s}
-.tcf-edit:active{background:rgba(56,189,248,.1)}
-.tcf-del{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;
-  color:var(--bear);font-size:13px;cursor:pointer;background:rgba(255,77,106,.04);
-  border:none;border-left:1px solid var(--line);transition:background .15s}
-.tcf-del:active{background:rgba(255,77,106,.1)}
+.tcf-edit{flex:1;display:flex;align-items:center;justify-content:center;padding:16px 12px;
+  color:var(--blue);font-size:20px;cursor:pointer;background:rgba(56,189,248,.04);
+  border:none;transition:background .15s;
+  -webkit-tap-highlight-color:rgba(56,189,248,.2)}
+.tcf-edit:active{background:rgba(56,189,248,.15)}
+.tcf-del{flex:1;display:flex;align-items:center;justify-content:center;padding:16px 12px;
+  color:var(--bear);font-size:20px;cursor:pointer;background:rgba(255,77,106,.04);
+  border:none;border-left:1px solid var(--line);transition:background .15s;
+  min-width:56px;-webkit-tap-highlight-color:rgba(255,77,106,.2)}
+.tcf-del:active{background:rgba(255,77,106,.15)}
 
 /* STATUS BADGE */
 .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--mono);
@@ -405,15 +405,49 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   display:flex;align-items:center;justify-content:center}
 .hist-img img{width:100%;height:100%;object-fit:cover;display:block}
 .hist-img .img-loading{font-size:20px;opacity:.4}
-</style>
 
+/* ADD-ON MODAL */
+.addon-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:450;
+  display:none;align-items:flex-end}
+.addon-modal-overlay.open{display:flex}
+.addon-modal{background:var(--s1);border-radius:20px 20px 0 0;padding:24px 20px 40px;
+  width:100%;max-height:85vh;overflow-y:auto}
+
+/* AVG PRICE SUMMARY */
+.avg-box{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.2);
+  border-radius:10px;padding:12px 16px;margin:0 16px 12px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+.avg-box .ab-label{font-family:var(--mono);font-size:9px;color:var(--dim);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.avg-box .ab-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--blue)}
+
+/* ADD-ON LIST */
+.addon-list{display:flex;flex-direction:column;gap:8px;margin:0 16px 12px}
+.addon-item{background:var(--s2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:13px}
+.addon-del{background:none;border:none;color:var(--bear);font-size:16px;
+  cursor:pointer;padding:2px;line-height:1;opacity:.7;margin-left:auto}
+
+/* SIGNAL MANAGER MODAL */
+.sig-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:450;
+  display:none;align-items:flex-end}
+.sig-modal-overlay.open{display:flex}
+.sig-modal{background:var(--s1);border-radius:20px 20px 0 0;padding:24px 20px 40px;
+  width:100%;max-height:82vh;overflow-y:auto}
+.sig-list-item{display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:var(--s2);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.sli-name{flex:1;font-size:14px}
+.sli-default{font-size:10px;font-family:var(--mono);color:var(--dim);padding:2px 8px;
+  background:var(--s3);border-radius:4px}
+.sli-del{background:none;border:none;color:var(--bear);font-size:18px;cursor:pointer;
+  padding:4px;line-height:1;opacity:.7}
+</style>
 </head>
 <body>
 
 <div class="sync-bar" id="sync-bar"></div>
 
 <!-- BOTTOM NAV -->
-
 <div class="bnav">
   <div class="bnav-item active" onclick="go('home')"><div class="bi">📊</div><div class="bl">總覽</div></div>
   <div class="bnav-item" onclick="go('new')"><div class="bi">✏️</div><div class="bl">記錄</div></div>
@@ -424,14 +458,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 <div class="toast" id="toast"></div>
 
 <!-- LIGHTBOX -->
-
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
 
 <!-- PRESET MANAGER MODAL -->
-
 <div class="preset-modal-overlay" id="preset-modal">
   <div class="preset-modal">
     <div class="preset-modal-title">
@@ -453,24 +485,34 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 </div>
 
-<!-- EDIT MODAL -->
-
+<!-- EDIT MODAL (merged: edit + addon + stop loss) -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-title">
-      ✏️ 修改交易紀錄
+      ✏️ 修改紀錄
       <button class="modal-close" onclick="closeEdit()">✕</button>
     </div>
+
+    <!-- ── 持倉狀態 & 出場 ── -->
     <div class="field"><label>平倉狀態</label>
       <select id="e-status">
         <option value="open">📌 持倉中</option>
         <option value="closed">✅ 已平倉</option>
       </select>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="padding-right:0"><label>停損價格</label>
+        <input type="number" id="e-stop" placeholder="停損價" inputmode="decimal"></div>
+      <div class="field" style="padding-left:0"><label>目標價格</label>
+        <input type="number" id="e-target" placeholder="目標價" inputmode="decimal"></div>
+    </div>
     <div class="field"><label>出場日期</label><input type="date" id="e-exit-date"></div>
-    <div class="field"><label>出場價格</label><input type="number" id="e-exit" placeholder="0" inputmode="decimal"></div>
-    <div class="field"><label>實際損益金額（選填，例：+5000 或 -2000）</label>
-      <input type="number" id="e-pnl-amt" placeholder="填實際獲利或虧損金額" inputmode="decimal"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="padding-right:0"><label>出場價格</label>
+        <input type="number" id="e-exit" placeholder="0" inputmode="decimal"></div>
+      <div class="field" style="padding-left:0"><label>實際損益</label>
+        <input type="number" id="e-pnl-amt" placeholder="損益金額" inputmode="decimal"></div>
+    </div>
     <div class="field"><label>出場原因</label>
       <select id="e-exit-r">
         <option value="">— 選擇 —</option>
@@ -480,6 +522,39 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
         <option value="target">目標達到</option>
       </select>
     </div>
+
+    <!-- ── 加碼區塊（持倉中才顯示）── -->
+    <div id="e-addon-section" style="display:none">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;
+        text-transform:uppercase;margin-bottom:10px;padding-top:4px;border-top:1px solid var(--line);
+        margin-top:4px">➕ 加碼管理</div>
+      <!-- summary -->
+      <div class="avg-box" id="e-addon-summary">
+        <div><div class="ab-label">平均均價</div><div class="ab-val" id="e-addon-avg">—</div></div>
+        <div><div class="ab-label">總口數/張數</div><div class="ab-val" id="e-addon-total">—</div></div>
+        <div><div class="ab-label">加碼次數</div><div class="ab-val" id="e-addon-count">0</div></div>
+      </div>
+      <!-- addon list -->
+      <div id="e-addon-list" style="margin-bottom:10px"></div>
+      <!-- add new -->
+      <div style="background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="field" style="padding:0"><label>加碼價格</label>
+            <input type="number" id="ea-price" placeholder="0" inputmode="decimal"></div>
+          <div class="field" style="padding:0"><label>口數/張數</label>
+            <input type="number" id="ea-size" placeholder="1" inputmode="decimal"></div>
+        </div>
+        <div class="field" style="padding:0;margin-bottom:8px"><label>加碼日期</label>
+          <input type="date" id="ea-date"></div>
+        <button onclick="addAddonFromEdit()" style="width:100%;background:rgba(56,189,248,.1);
+          color:var(--blue);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:11px;
+          font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer">
+          ＋ 新增加碼
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 檢討 ── -->
     <div class="field"><label>事後檢討</label>
       <textarea id="e-review" placeholder="這筆學到什麼？"></textarea>
     </div>
@@ -495,8 +570,25 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 </div>
 
-<!-- ══ HOME ══ -->
+<!-- addon modal merged into edit modal -->
 
+<!-- SIGNAL MANAGER MODAL -->
+<div class="sig-modal-overlay" id="sig-modal">
+  <div class="sig-modal">
+    <div class="modal-title">
+      ⚙️ 管理進場訊號
+      <button class="modal-close" onclick="closeSigModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--soft);margin-bottom:16px">可新增或刪除訊號，修改後記錄頁面會立即更新</div>
+    <div id="sig-manager-list"></div>
+    <div class="preset-add-input-row" style="margin-top:4px">
+      <input type="text" id="sig-new-input" placeholder="新訊號名稱..." onkeydown="if(event.key==='Enter')addSigItem()">
+      <button onclick="addSigItem()">＋ 新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
 <div class="page active" id="page-home">
   <div class="ph">
     <div>
@@ -517,7 +609,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 
   <!-- 持倉/平倉統計 -->
-
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
     <div class="stat" style="border-left:3px solid var(--gold)">
       <div class="stat-l">持倉中</div>
@@ -549,172 +640,165 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══ NEW ══ -->
-
 <div class="page" id="page-new">
   <div class="ph">
     <div><div class="ph-title">記錄交易</div><div class="ph-sub">進場前填，出場後再補</div></div>
   </div>
   <div class="form-wrap">
 
-```
-<div class="form-section">
-  <div class="fs-title">📌 基本資訊</div>
-  <div class="field"><label>日期</label><input type="date" id="f-date"></div>
+    <div class="form-section">
+      <div class="fs-title">📌 基本資訊</div>
+      <div class="field"><label>日期</label><input type="date" id="f-date"></div>
 
-  <!-- 四大類別 -->
-  <div class="field" style="padding-bottom:4px"><label>交易類別</label></div>
-  <div class="cat-tabs">
-    <div class="cat-btn active-cat" id="cat-tw" onclick="setCat('tw')"><span class="cat-icon">🇹🇼</span>台股</div>
-    <div class="cat-btn" id="cat-fut" onclick="setCat('fut')"><span class="cat-icon">📈</span>台指期</div>
-    <div class="cat-btn" id="cat-os" onclick="setCat('os')"><span class="cat-icon">🌐</span>海外期貨</div>
-    <div class="cat-btn" id="cat-crypto" onclick="setCat('crypto')"><span class="cat-icon">₿</span>虛擬貨幣</div>
-  </div>
-
-  <div class="field" style="padding-top:12px;padding-bottom:4px">
-    <label style="display:flex;align-items:center;justify-content:space-between">
-      <span>快選標的</span>
-      <span onclick="openPresetModal()" style="color:var(--blue);font-size:11px;cursor:pointer;
-        letter-spacing:1px;font-weight:600;display:flex;align-items:center;gap:4px">
-        ⚙️ 管理標的
-      </span>
-    </label>
-  </div>
-  <div class="sym-presets" id="sym-presets"></div>
-
-  <div class="field"><label>標的名稱</label><input type="text" id="f-sym" placeholder="輸入或點上方快選"></div>
-
-  <div class="field">
-    <label>方向</label>
-    <div class="dir-toggle">
-      <div class="dir-btn active-long" id="btn-long" onclick="setDir('long')">▲ 做多</div>
-      <div class="dir-btn" id="btn-short" onclick="setDir('short')">▼ 做空</div>
-    </div>
-  </div>
-  <div class="field"><label>進場價格</label><input type="number" id="f-entry" placeholder="0" inputmode="decimal"></div>
-  <div class="field"><label>停損價格</label><input type="number" id="f-stop" placeholder="0" inputmode="decimal"></div>
-  <div class="field"><label>部位大小（口/張/顆）</label><input type="number" id="f-size" placeholder="1" inputmode="decimal"></div>
-  <div class="field"><label>預計持倉天數</label>
-    <select id="f-hold-plan">
-      <option value="">— 預計持倉 —</option>
-      <option value="1">當沖（當天）</option>
-      <option value="2">隔日沖（1~2天）</option>
-      <option value="5">短波段（3~5天）</option>
-      <option value="14">中波段（1~2週）</option>
-      <option value="30">長波段（1個月以上）</option>
-    </select>
-  </div>
-</div>
-
-<!-- 市場狀況 -->
-<div class="form-section">
-  <div class="fs-title">🌊 市場狀況（順勢 or 逆勢）</div>
-  <div class="field" style="padding-top:14px">
-    <div class="market-toggle">
-      <div class="mkt-btn" id="mkt-trend" onclick="setMkt('trend')">
-        <span class="mkt-icon">🚀</span>順勢<br><span style="font-size:10px;color:inherit;opacity:.7">趨勢跟單</span>
+      <!-- 四大類別 -->
+      <div class="field" style="padding-bottom:4px"><label>交易類別</label></div>
+      <div class="cat-tabs">
+        <div class="cat-btn active-cat" id="cat-tw" onclick="setCat('tw')"><span class="cat-icon">🇹🇼</span>台股</div>
+        <div class="cat-btn" id="cat-fut" onclick="setCat('fut')"><span class="cat-icon">📈</span>台指期</div>
+        <div class="cat-btn" id="cat-os" onclick="setCat('os')"><span class="cat-icon">🌐</span>海外期貨</div>
+        <div class="cat-btn" id="cat-crypto" onclick="setCat('crypto')"><span class="cat-icon">₿</span>虛擬貨幣</div>
       </div>
-      <div class="mkt-btn" id="mkt-counter" onclick="setMkt('counter')">
-        <span class="mkt-icon">🔄</span>逆勢<br><span style="font-size:10px;color:inherit;opacity:.7">反轉搶單</span>
+
+      <div class="field" style="padding-top:12px;padding-bottom:4px">
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>快選標的</span>
+          <span onclick="openPresetModal()" style="color:var(--blue);font-size:11px;cursor:pointer;
+            letter-spacing:1px;font-weight:600;display:flex;align-items:center;gap:4px">
+            ⚙️ 管理標的
+          </span>
+        </label>
       </div>
-      <div class="mkt-btn" id="mkt-range" onclick="setMkt('range')">
-        <span class="mkt-icon">↔️</span>區間<br><span style="font-size:10px;color:inherit;opacity:.7">震盪操作</span>
+      <div class="sym-presets" id="sym-presets"></div>
+
+      <div class="field"><label>標的名稱</label><input type="text" id="f-sym" placeholder="輸入或點上方快選"></div>
+
+      <div class="field">
+        <label>方向</label>
+        <div class="dir-toggle">
+          <div class="dir-btn active-long" id="btn-long" onclick="setDir('long')">▲ 做多</div>
+          <div class="dir-btn" id="btn-short" onclick="setDir('short')">▼ 做空</div>
+        </div>
+      </div>
+      <div class="field"><label>進場價格</label><input type="number" id="f-entry" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>停損價格</label><input type="number" id="f-stop" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>目標價格（選填）</label><input type="number" id="f-target" placeholder="0（選填）" inputmode="decimal"></div>
+      <div class="field"><label>部位大小（口/張/顆）</label><input type="number" id="f-size" placeholder="1" inputmode="decimal"></div>
+      <div class="field"><label>預計持倉天數</label>
+        <select id="f-hold-plan">
+          <option value="">— 預計持倉 —</option>
+          <option value="1">當沖（當天）</option>
+          <option value="2">隔日沖（1~2天）</option>
+          <option value="5">短波段（3~5天）</option>
+          <option value="14">中波段（1~2週）</option>
+          <option value="30">長波段（1個月以上）</option>
+        </select>
       </div>
     </div>
-  </div>
-  <div class="field"><label>市場備註（選填）</label>
-    <input type="text" id="f-mkt-note" placeholder="例：突破前高後拉回測試，順勢做多">
-  </div>
-</div>
 
-<!-- 訊號確認 -->
-<div class="form-section">
-  <div class="fs-title">✅ 進場訊號確認</div>
-  <div class="chip-group" id="sig-chips">
-    <div class="chip-btn" data-val="ma_align" onclick="toggleChip(this,'bull')">MA 三線排列</div>
-    <div class="chip-btn" data-val="macd_zero" onclick="toggleChip(this,'bull')">MACD 正確軸側</div>
-    <div class="chip-btn" data-val="macd_flip" onclick="toggleChip(this,'bull')">紅柱翻正</div>
-    <div class="chip-btn" data-val="stop_k" onclick="toggleChip(this,'bull')">止跌K棒</div>
-    <div class="chip-btn" data-val="close_ma" onclick="toggleChip(this,'bull')">站上15MA</div>
-    <div class="chip-btn" data-val="diverge" onclick="toggleChip(this,'bull')">背離訊號</div>
-  </div>
-  <div class="field"><label>進場理由（一句話）</label>
-    <textarea id="f-reason" placeholder="例：日K多頭，60K MACD紅柱翻出，收盤站上15MA，1/3試多"></textarea>
-  </div>
-</div>
-
-<!-- 截圖 -->
-<div class="form-section">
-  <div class="fs-title">📸 K線截圖（儲存後可在歷史點開看）</div>
-  <!-- hidden inputs -->
-  <input type="file" id="f-imgs-lib"    accept="image/*" multiple style="display:none" onchange="handleImgSelect(this)">
-  <input type="file" id="f-imgs-camera" accept="image/*" capture="environment" style="display:none" onchange="handleImgSelect(this)">
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 4px">
-    <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-lib').click()">
-      <div class="img-upload-icon">🖼️</div>
-      <div class="img-upload-text" style="font-size:13px">從相簿選取</div>
-      <div class="img-upload-sub">可多選</div>
+    <!-- 市場狀況 -->
+    <div class="form-section">
+      <div class="fs-title">🌊 市場狀況（順勢 or 逆勢）</div>
+      <div class="field" style="padding-top:14px">
+        <div class="market-toggle">
+          <div class="mkt-btn" id="mkt-trend" onclick="setMkt('trend')">
+            <span class="mkt-icon">🚀</span>順勢<br><span style="font-size:10px;color:inherit;opacity:.7">趨勢跟單</span>
+          </div>
+          <div class="mkt-btn" id="mkt-counter" onclick="setMkt('counter')">
+            <span class="mkt-icon">🔄</span>逆勢<br><span style="font-size:10px;color:inherit;opacity:.7">反轉搶單</span>
+          </div>
+          <div class="mkt-btn" id="mkt-range" onclick="setMkt('range')">
+            <span class="mkt-icon">↔️</span>區間<br><span style="font-size:10px;color:inherit;opacity:.7">震盪操作</span>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>市場備註（選填）</label>
+        <input type="text" id="f-mkt-note" placeholder="例：突破前高後拉回測試，順勢做多">
+      </div>
     </div>
-    <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-camera').click()">
-      <div class="img-upload-icon">📷</div>
-      <div class="img-upload-text" style="font-size:13px">直接拍照</div>
-      <div class="img-upload-sub">開啟相機</div>
+
+    <!-- 訊號確認 -->
+    <div class="form-section">
+      <div class="fs-title" style="justify-content:space-between">
+        <span>✅ 進場訊號確認</span>
+        <span onclick="openSigModal()" style="color:var(--blue);font-size:11px;cursor:pointer;
+          letter-spacing:1px;font-weight:600">⚙️ 管理訊號</span>
+      </div>
+      <div class="chip-group" id="sig-chips"></div>
+      <div class="field"><label>進場理由（一句話）</label>
+        <textarea id="f-reason" placeholder="例：日K多頭，60K MACD紅柱翻出，收盤站上15MA，1/3試多"></textarea>
+      </div>
     </div>
-  </div>
-  <div class="img-upload-progress" id="img-progress"><div class="bar" id="img-bar"></div></div>
-  <div class="img-previews" id="img-previews"></div>
-</div>
 
-<!-- 出場（可後補） -->
-<div class="form-section">
-  <div class="fs-title">🚪 出場資訊（可出場後再補）</div>
-  <div class="field"><label>平倉狀態</label>
-    <select id="f-status">
-      <option value="open">📌 持倉中</option>
-      <option value="closed">✅ 已平倉</option>
-    </select>
-  </div>
-  <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
-  <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
-  <div class="field"><label>實際損益金額（選填）</label>
-    <input type="number" id="f-pnl-amt" placeholder="填實際獲利或虧損金額，例 5000" inputmode="decimal">
-  </div>
-  <div class="field"><label>出場原因</label>
-    <select id="f-exit-r">
-      <option value="">— 選擇 —</option>
-      <option value="stop">停損觸發</option>
-      <option value="ma15">15MA跌破</option>
-      <option value="diverge">頂背離</option>
-      <option value="target">目標達到</option>
-    </select>
-  </div>
-</div>
+    <!-- 截圖 -->
+    <div class="form-section">
+      <div class="fs-title">📸 K線截圖（儲存後可在歷史點開看）</div>
+      <!-- hidden inputs -->
+      <input type="file" id="f-imgs-lib"    accept="image/*" multiple style="display:none" onchange="handleImgSelect(this)">
+      <input type="file" id="f-imgs-camera" accept="image/*" capture="environment" style="display:none" onchange="handleImgSelect(this)">
 
-<!-- 錯誤 -->
-<div class="form-section">
-  <div class="fs-title">❌ 這筆犯了哪些錯？</div>
-  <div class="chip-group" id="err-chips">
-    <div class="chip-btn" data-val="early" onclick="toggleChip(this,'bear')">進場太早</div>
-    <div class="chip-btn" data-val="late_exit" onclick="toggleChip(this,'bear')">出場太晚</div>
-    <div class="chip-btn" data-val="no_stop" onclick="toggleChip(this,'bear')">沒執行停損</div>
-    <div class="chip-btn" data-val="oversize" onclick="toggleChip(this,'bear')">倉位太重</div>
-    <div class="chip-btn" data-val="revenge" onclick="toggleChip(this,'bear')">報復性交易</div>
-    <div class="chip-btn" data-val="no_signal" onclick="toggleChip(this,'bear')">無訊號進場</div>
-  </div>
-  <div class="field"><label>事後檢討</label>
-    <textarea id="f-review" placeholder="例：黑柱縮小就進了，沒等紅柱翻正。下次一定等訊號完成再進。"></textarea>
-  </div>
-</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 4px">
+        <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-lib').click()">
+          <div class="img-upload-icon">🖼️</div>
+          <div class="img-upload-text" style="font-size:13px">從相簿選取</div>
+          <div class="img-upload-sub">可多選</div>
+        </div>
+        <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-camera').click()">
+          <div class="img-upload-icon">📷</div>
+          <div class="img-upload-text" style="font-size:13px">直接拍照</div>
+          <div class="img-upload-sub">開啟相機</div>
+        </div>
+      </div>
+      <div class="img-upload-progress" id="img-progress"><div class="bar" id="img-bar"></div></div>
+      <div class="img-previews" id="img-previews"></div>
+    </div>
 
-<button class="btn-save" onclick="saveTrade()">💾 儲存這筆交易</button>
-<button class="btn-reset" onclick="resetForm()">清除重填</button>
-```
+    <!-- 出場（可後補） -->
+    <div class="form-section">
+      <div class="fs-title">🚪 出場資訊（可出場後再補）</div>
+      <div class="field"><label>平倉狀態</label>
+        <select id="f-status">
+          <option value="open">📌 持倉中</option>
+          <option value="closed">✅ 已平倉</option>
+        </select>
+      </div>
+      <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
+      <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
+      <div class="field"><label>實際損益金額（選填）</label>
+        <input type="number" id="f-pnl-amt" placeholder="填實際獲利或虧損金額，例 5000" inputmode="decimal">
+      </div>
+      <div class="field"><label>出場原因</label>
+        <select id="f-exit-r">
+          <option value="">— 選擇 —</option>
+          <option value="stop">停損觸發</option>
+          <option value="ma15">15MA跌破</option>
+          <option value="diverge">頂背離</option>
+          <option value="target">目標達到</option>
+        </select>
+      </div>
+    </div>
 
+    <!-- 錯誤 -->
+    <div class="form-section">
+      <div class="fs-title">❌ 這筆犯了哪些錯？</div>
+      <div class="chip-group" id="err-chips">
+        <div class="chip-btn" data-val="early" onclick="toggleChip(this,'bear')">進場太早</div>
+        <div class="chip-btn" data-val="late_exit" onclick="toggleChip(this,'bear')">出場太晚</div>
+        <div class="chip-btn" data-val="no_stop" onclick="toggleChip(this,'bear')">沒執行停損</div>
+        <div class="chip-btn" data-val="oversize" onclick="toggleChip(this,'bear')">倉位太重</div>
+        <div class="chip-btn" data-val="revenge" onclick="toggleChip(this,'bear')">報復性交易</div>
+        <div class="chip-btn" data-val="no_signal" onclick="toggleChip(this,'bear')">無訊號進場</div>
+      </div>
+      <div class="field"><label>事後檢討</label>
+        <textarea id="f-review" placeholder="例：黑柱縮小就進了，沒等紅柱翻正。下次一定等訊號完成再進。"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="saveTrade()">💾 儲存這筆交易</button>
+    <button class="btn-reset" onclick="resetForm()">清除重填</button>
   </div>
 </div>
 
 <!-- ══ HISTORY ══ -->
-
 <div class="page" id="page-history">
   <div class="ph">
     <div><div class="ph-title">歷史紀錄</div><div class="ph-sub" id="hist-sub">共 0 筆</div></div>
@@ -732,7 +816,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══ REVIEW ══ -->
-
 <div class="page" id="page-review">
   <div class="ph">
     <div><div class="ph-title">錯誤檢討</div><div class="ph-sub">有填檢討或有勾錯誤的筆</div></div>
@@ -753,6 +836,27 @@ let pendingPreviews = []; // { dataUrl, file } for preview before save
 let editingDocId  = null;
 let pmCat         = 'tw'; // preset manager active cat
 let deletedDefaults = { tw:[], fut:[], os:[], crypto:[] }; // user-deleted default presets
+let addonDocId = null; // trade being edited for add-ons
+
+// ── DEFAULT SIGNALS (editable) ──
+const defaultSignals = [
+  { val:'ma_align',  label:'MA 三線排列' },
+  { val:'macd_zero', label:'MACD 正確軸側' },
+  { val:'macd_flip', label:'紅柱翻正' },
+  { val:'stop_k',    label:'止跌K棒' },
+  { val:'close_ma',  label:'站上15MA' },
+  { val:'diverge',   label:'背離訊號' },
+];
+let customSignals  = []; // { val, label } user-added
+let deletedSignals = []; // val strings of deleted defaults
+
+function getActiveSignals() {
+  const dels = deletedSignals;
+  return [
+    ...defaultSignals.filter(s => !dels.includes(s.val)),
+    ...customSignals
+  ];
+}
 
 // ── DEFAULT PRESETS ──
 const defaultPresets = {
@@ -766,8 +870,12 @@ const defaultPresets = {
 const exitLabel = { stop:'停損', ma15:'15MA跌破', diverge:'頂背離', target:'目標達到', '':'—' };
 const errLabel  = { early:'進場太早', late_exit:'出場太晚', no_stop:'沒執行停損',
                     oversize:'倉位太重', revenge:'報復交易', no_signal:'無訊號進場' };
-const sigLabel  = { ma_align:'MA三線排列', macd_zero:'MACD軸側正確', macd_flip:'紅柱翻正',
-                    stop_k:'止跌K棒', close_ma:'站上15MA', diverge:'背離訊號' };
+// sigLabel is now dynamic - built from getActiveSignals()
+function getSigLabel(val) {
+  const all = [...defaultSignals, ...customSignals];
+  const found = all.find(s => s.val === val);
+  return found ? found.label : val;
+}
 const catIcon   = { tw:'🇹🇼', fut:'📈', os:'🌐', crypto:'₿' };
 const mktLabel  = { trend:'順勢', counter:'逆勢', range:'區間', '':'—' };
 const holdPlanMap = { '1':'當沖','2':'隔日沖','5':'短波段 3~5天','14':'中波段 1~2週','30':'長波段 1個月+',''  :'—' };
@@ -776,6 +884,137 @@ function calcHoldDays(entryDate, exitDate) {
   if (!entryDate || !exitDate) return null;
   const ms = new Date(exitDate) - new Date(entryDate);
   return Math.round(ms / 86400000);
+}
+
+// ── RENDER SIGNAL CHIPS ──
+function renderSigChips() {
+  const el = document.getElementById('sig-chips');
+  if (!el) return;
+  const sigs = getActiveSignals();
+  el.innerHTML = sigs.map(s =>
+    `<div class="chip-btn" data-val="${s.val}" onclick="toggleChip(this,'bull')">${s.label}</div>`
+  ).join('');
+}
+
+// ── SIGNAL MANAGER MODAL ──
+function openSigModal() {
+  renderSigManagerList();
+  document.getElementById('sig-modal').classList.add('open');
+}
+function closeSigModal() {
+  document.getElementById('sig-modal').classList.remove('open');
+  renderSigChips();
+}
+function renderSigManagerList() {
+  const el = document.getElementById('sig-manager-list');
+  const dels = deletedSignals;
+  const activeDefault = defaultSignals.filter(s => !dels.includes(s.val));
+  const all = [...activeDefault, ...customSignals];
+  if (!all.length) { el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:8px 0">還沒有訊號</div>'; return; }
+  el.innerHTML = all.map(s => {
+    const isDef = defaultSignals.some(d => d.val === s.val);
+    return `<div class="sig-list-item">
+      <span class="sli-name">${s.label}</span>
+      ${isDef ? '<span class="sli-default">預設</span>' : ''}
+      <button class="sli-del" onclick="delSigItem('${s.val}','${isDef}')">✕</button>
+    </div>`;
+  }).join('');
+}
+async function addSigItem() {
+  const inp = document.getElementById('sig-new-input');
+  const label = inp.value.trim();
+  if (!label) return;
+  const val = 'custom_' + Date.now();
+  customSignals.push({ val, label });
+  inp.value = '';
+  if (window._fb) await window._fb.savePresets('_sigs_custom', customSignals);
+  renderSigManagerList();
+  showToast('✓ 已新增訊號：' + label);
+}
+async function delSigItem(val, isDef) {
+  if (isDef === 'true' || isDef === true) {
+    if (!deletedSignals.includes(val)) deletedSignals.push(val);
+    if (window._fb) await window._fb.savePresets('_sigs_deleted', deletedSignals);
+  } else {
+    customSignals = customSignals.filter(s => s.val !== val);
+    if (window._fb) await window._fb.savePresets('_sigs_custom', customSignals);
+  }
+  renderSigManagerList();
+  showToast('已刪除');
+}
+
+// ── ADD-ON MODAL ──
+function openAddon(docId) {
+  addonDocId = docId;
+  renderAddonModal();
+  document.getElementById('addon-modal').classList.add('open');
+  // set today's date
+  document.getElementById('addon-date').value = new Date().toISOString().split('T')[0];
+}
+function closeAddon() {
+  document.getElementById('addon-modal').classList.remove('open');
+  addonDocId = null;
+}
+function switchToAddon() {
+  if (!editingDocId) return;
+  closeEdit();
+  openAddon(editingDocId);
+}
+function renderAddonModal() {
+  const t = allTrades.find(t => t._docId === addonDocId);
+  if (!t) return;
+  const addons = t.addons || [];
+  // compute avg price
+  const allEntries = [{ price: t.entryPrice, size: t.size || 1 }, ...addons];
+  const totalSize  = allEntries.reduce((s, e) => s + (e.size || 1), 0);
+  const avgPrice   = allEntries.reduce((s, e) => s + e.price * (e.size || 1), 0) / totalSize;
+  document.getElementById('addon-avg').textContent        = avgPrice.toFixed(2);
+  document.getElementById('addon-total-size').textContent = totalSize;
+  document.getElementById('addon-count').textContent      = addons.length;
+  // list
+  const el = document.getElementById('addon-list');
+  if (!addons.length) {
+    el.innerHTML = `<div style="color:var(--dim);font-size:13px;padding:4px 0">還沒有加碼單<br>
+      <span style="font-size:12px">原始進場：${t.entryPrice} × ${t.size||1} 口/張</span></div>`;
+  } else {
+    el.innerHTML = `<div style="font-size:12px;color:var(--dim);margin-bottom:8px">
+      原始進場：${t.entryPrice} × ${t.size||1} 口/張</div>` +
+    addons.map((a, i) =>
+      `<div class="addon-item">
+        <div>
+          <div style="font-weight:700;font-family:var(--mono)">${a.price}</div>
+          <div style="font-size:11px;color:var(--soft)">${a.date||''} · ${a.size||1} 口/張</div>
+        </div>
+        <button class="addon-del" onclick="delAddon(${i})">✕</button>
+      </div>`
+    ).join('');
+  }
+  document.getElementById('addon-price').value = '';
+  document.getElementById('addon-size').value  = '';
+}
+async function addAddon() {
+  const price = parseFloat(document.getElementById('addon-price').value);
+  const size  = parseFloat(document.getElementById('addon-size').value) || 1;
+  const date  = document.getElementById('addon-date').value;
+  if (!price) { showToast('請填加碼價格', true); return; }
+  const t = allTrades.find(t => t._docId === addonDocId);
+  if (!t) return;
+  const addons = [...(t.addons || []), { price, size, date }];
+  try {
+    if (window._fb) { await window._fb.update(addonDocId, { addons }); showSyncBar(); }
+    showToast('✓ 加碼單已新增');
+    renderAddonModal();
+  } catch(e) { showToast('⚠️ 失敗', true); }
+}
+async function delAddon(idx) {
+  const t = allTrades.find(t => t._docId === addonDocId);
+  if (!t) return;
+  const addons = (t.addons || []).filter((_, i) => i !== idx);
+  try {
+    if (window._fb) { await window._fb.update(addonDocId, { addons }); showSyncBar(); }
+    showToast('已刪除加碼單');
+    renderAddonModal();
+  } catch(e) { showToast('⚠️ 失敗', true); }
 }
 
 // ── NAV ──
@@ -1060,6 +1299,7 @@ async function saveTrade() {
     status: document.getElementById('f-status').value || 'open',
     entryPrice: entry,
     stopPrice:  parseFloat(document.getElementById('f-stop').value) || null,
+    targetPrice: parseFloat(document.getElementById('f-target').value) || null,
     size:       parseFloat(document.getElementById('f-size').value) || 1,
     exitDate:   document.getElementById('f-exit-date').value || null,
     holdDays:   calcHoldDays(date, document.getElementById('f-exit-date').value || null),
@@ -1086,7 +1326,7 @@ async function saveTrade() {
 
 // ── RESET ──
 function resetForm() {
-  ['f-sym','f-entry','f-stop','f-size','f-exit','f-pnl-amt','f-reason','f-review','f-mkt-note','f-hold-plan'].forEach(
+  ['f-sym','f-entry','f-stop','f-target','f-size','f-exit','f-pnl-amt','f-reason','f-review','f-mkt-note','f-hold-plan'].forEach(
     id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('f-exit-date').value = '';
   document.getElementById('f-exit-r').value = '';
@@ -1137,30 +1377,95 @@ function openEdit(docId) {
   if (!t) return;
   editingDocId = docId;
   document.getElementById('e-status').value    = t.status || 'open';
+  document.getElementById('e-stop').value      = t.stopPrice || '';
+  document.getElementById('e-target').value    = t.targetPrice || '';
   document.getElementById('e-exit-date').value = t.exitDate || '';
   document.getElementById('e-exit').value      = t.exitPrice || '';
   document.getElementById('e-pnl-amt').value   = (t.pnlAmt !== null && t.pnlAmt !== undefined) ? t.pnlAmt : '';
   document.getElementById('e-exit-r').value    = t.exitReason || '';
   document.getElementById('e-review').value    = t.review || '';
   setChips('e-err-chips', t.errors || []);
+  // show addon section only for open positions
+  const addonSec = document.getElementById('e-addon-section');
+  if (isOpen(t)) {
+    addonSec.style.display = 'block';
+    document.getElementById('ea-date').value = new Date().toISOString().split('T')[0];
+    renderEditAddonSummary(t);
+  } else {
+    addonSec.style.display = 'none';
+  }
   document.getElementById('edit-modal').classList.add('open');
 }
 function closeEdit() {
   document.getElementById('edit-modal').classList.remove('open');
   editingDocId = null;
 }
+function renderEditAddonSummary(t) {
+  const addons = t.addons || [];
+  const allE   = [{ price: t.entryPrice, size: t.size||1 }, ...addons];
+  const tot    = allE.reduce((s,e) => s + (e.size||1), 0);
+  const avg    = (allE.reduce((s,e) => s + e.price*(e.size||1), 0) / tot).toFixed(2);
+  document.getElementById('e-addon-avg').textContent   = avg;
+  document.getElementById('e-addon-total').textContent = tot;
+  document.getElementById('e-addon-count').textContent = addons.length;
+  const el = document.getElementById('e-addon-list');
+  if (!addons.length) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:12px;margin-bottom:8px">尚無加碼 · 原始進場: ' + t.entryPrice + ' × ' + (t.size||1) + '</div>';
+  } else {
+    el.innerHTML = '<div style="font-size:12px;color:var(--dim);margin-bottom:6px">原始: ' + t.entryPrice + ' × ' + (t.size||1) + '</div>'
+      + addons.map((a,i) =>
+          '<div class="addon-item">'
+          + '<div><div style="font-weight:700;font-family:var(--mono)">' + a.price + '</div>'
+          + '<div style="font-size:11px;color:var(--soft)">' + (a.date||'') + ' · ' + (a.size||1) + ' 口/張</div></div>'
+          + '<button class="addon-del" onclick="delAddonFromEdit(' + i + ')">✕</button>'
+          + '</div>'
+      ).join('');
+  }
+}
+async function addAddonFromEdit() {
+  const price = parseFloat(document.getElementById('ea-price').value);
+  const size  = parseFloat(document.getElementById('ea-size').value) || 1;
+  const date  = document.getElementById('ea-date').value;
+  if (!price) { showToast('請填加碼價格', true); return; }
+  const t = allTrades.find(t => t._docId === editingDocId);
+  if (!t) return;
+  const addons = [...(t.addons || []), { price, size, date }];
+  try {
+    if (window._fb) { await window._fb.update(editingDocId, { addons }); showSyncBar(); }
+    document.getElementById('ea-price').value = '';
+    document.getElementById('ea-size').value  = '';
+    showToast('✓ 加碼單新增');
+    // re-render summary from updated allTrades (listener will update)
+    const updated = { ...t, addons };
+    renderEditAddonSummary(updated);
+  } catch(e) { showToast('⚠️ 失敗', true); }
+}
+async function delAddonFromEdit(idx) {
+  const t = allTrades.find(t => t._docId === editingDocId);
+  if (!t) return;
+  const addons = (t.addons || []).filter((_,i) => i !== idx);
+  try {
+    if (window._fb) { await window._fb.update(editingDocId, { addons }); showSyncBar(); }
+    showToast('已刪除加碼');
+    const updated = { ...t, addons };
+    renderEditAddonSummary(updated);
+  } catch(e) { showToast('⚠️ 失敗', true); }
+}
 async function saveEdit() {
   if (!editingDocId) return;
   const pnlRaw = document.getElementById('e-pnl-amt').value;
+  const baseT = allTrades.find(t=>t._docId===editingDocId) || {};
   const updates = {
-    status:     document.getElementById('e-status').value,
-    exitDate:   document.getElementById('e-exit-date').value || null,
-    holdDays:   calcHoldDays((allTrades.find(t=>t._docId===editingDocId)||{}).date, document.getElementById('e-exit-date').value || null),
-    exitPrice:  parseFloat(document.getElementById('e-exit').value) || null,
-    pnlAmt:     pnlRaw !== '' ? parseFloat(pnlRaw) : null,
-    exitReason: document.getElementById('e-exit-r').value || '',
-    review:     document.getElementById('e-review').value.trim(),
-    errors:     getChips('e-err-chips'),
+    status:      document.getElementById('e-status').value,
+    stopPrice:   parseFloat(document.getElementById('e-stop').value) || null,
+    targetPrice: parseFloat(document.getElementById('e-target').value) || null,
+    exitDate:    document.getElementById('e-exit-date').value || null,
+    holdDays:    calcHoldDays(baseT.date, document.getElementById('e-exit-date').value || null),
+    exitPrice:   parseFloat(document.getElementById('e-exit').value) || null,
+    pnlAmt:      pnlRaw !== '' ? parseFloat(pnlRaw) : null,
+    exitReason:  document.getElementById('e-exit-r').value || '',
+    review:      document.getElementById('e-review').value.trim(),
+    errors:      getChips('e-err-chips'),
   };
   try {
     if (window._fb) { await window._fb.update(editingDocId, updates); showSyncBar(); }
@@ -1303,7 +1608,7 @@ function renderSigAccuracy(closed) {
     const pct = Math.round(wins.length/w.length*100);
     const c = pct>=60?'var(--bull)':pct>=40?'var(--gold)':'var(--bear)';
     return `<div class="sig-item">
-      <div class="sig-name">${sigLabel[s]}</div>
+      <div class="sig-name">${getSigLabel(s)}</div>
       <div class="sig-bar-wrap"><div class="sig-bar" style="width:${pct}%;background:${c}"></div></div>
       <div class="sig-pct" style="color:${c}">${pct}%</div></div>`;
   }).join('');
@@ -1322,6 +1627,15 @@ function renderHistory() {
   renderHistoryList();
 }
 
+function calcAddonInfo(t) {
+  const addons = t.addons || [];
+  if (!addons.length) return null;
+  const allE = [{ price: t.entryPrice, size: t.size||1 }, ...addons];
+  const tot  = allE.reduce((s,e) => s + (e.size||1), 0);
+  const avg  = (allE.reduce((s,e) => s + e.price*(e.size||1), 0) / tot).toFixed(2);
+  return { avg, tot, count: addons.length };
+}
+
 function renderHistoryList() {
   const filtered = allTrades.slice().reverse().filter(t => {
     if (histFilter==='all')     return true;
@@ -1336,51 +1650,98 @@ function renderHistoryList() {
   });
 
   const el = document.getElementById('history-list');
-  if (!filtered.length) { el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>沒有符合的紀錄</p></div>`; return; }
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>沒有符合的紀錄</p></div>';
+    return;
+  }
 
-  el.innerHTML = filtered.map(t => {
-    const pnl    = calcPnl(t);
-    const open   = isOpen(t);
-    const docId  = t._docId || t.id;
-    const pnlStr = open ? `<span style="color:var(--gold)">持倉中</span>` :
-      `<span style="${pnl>=0?'color:var(--bull)':'color:var(--bear)'};font-family:var(--mono);font-weight:700">${fmtMoney(pnl)}</span>`;
-    const errTags = (t.errors||[]).map(e=>`<span class="err-tag">${errLabel[e]||e}</span>`).join('');
-    const sigTags = (t.signals||[]).map(s=>`<span class="sig-tag">${sigLabel[s]||s}</span>`).join('');
-    const mktTag  = t.market ? `<span class="mkt-tag mkt-${t.market}">${mktLabel[t.market]}</span>` : '';
-    const statusBadge = open ?
-      `<span class="status-badge badge-open">持倉中</span>` :
-      `<span class="status-badge badge-closed">已平倉</span>`;
-    const imgHtml = renderImgs(t.images);
-
-    return `<div class="trade-card-full">
-      <div class="tcf-header" onclick="toggleExpand('${docId}')">
-        <span class="tc-dir ${t.dir}">${t.dir==='long'?'▲':'▼'}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:700">${catIcon[t.cat||'tw']||''} ${t.sym}${statusBadge}</div>
-          <div style="font-size:12px;color:var(--soft);margin-top:2px">${t.date||''} ${mktTag}</div>
-        </div>
-        ${pnlStr}
-        <span style="color:var(--dim);margin-left:6px">›</span>
-      </div>
-      <div class="tcf-body" id="tcf-${docId}">
-        <div class="tcf-row"><span class="tcf-key">進場</span><span class="tcf-val">${t.entryPrice} → 停損 ${t.stopPrice||'—'}</span></div>
-        ${(t.holdPlan||t.holdDays)?`<div class="tcf-row"><span class="tcf-key">持倉計畫</span><span class="tcf-val">${holdPlanLabel(t.holdPlan)}${t.holdDays?' · 實際 '+t.holdDays+' 天':''}</span></div>`:''}
-        <div class="tcf-row"><span class="tcf-key">出場</span><span class="tcf-val">${t.exitPrice||'持倉中'} （${exitLabel[t.exitReason]||'—'}）</span></div>
-        ${t.pnlAmt!==null&&t.pnlAmt!==undefined?`<div class="tcf-row"><span class="tcf-key">實際損益</span><span class="tcf-val" style="${t.pnlAmt>=0?'color:var(--bull)':'color:var(--bear)'};font-weight:700;font-family:var(--mono)">${fmtMoney(t.pnlAmt)}</span></div>`:''}
-        ${t.market?`<div class="tcf-row"><span class="tcf-key">市場</span><span class="tcf-val">${mktLabel[t.market]}${t.marketNote?' · '+t.marketNote:''}</span></div>`:''}
-        ${t.reason?`<div class="tcf-row"><span class="tcf-key">進場理由</span><span class="tcf-val">${t.reason}</span></div>`:''}
-        ${sigTags?`<div class="tcf-row"><span class="tcf-key">訊號</span><span class="tcf-val sig-tags">${sigTags}</span></div>`:''}
-        ${errTags?`<div class="tcf-row"><span class="tcf-key">錯誤</span><span class="tcf-val err-tags">${errTags}</span></div>`:''}
-        ${t.review?`<div class="tcf-row"><span class="tcf-key">檢討</span><span class="tcf-val">${t.review}</span></div>`:''}
-        ${imgHtml?`<div class="tcf-row"><span class="tcf-key">截圖</span><span class="tcf-val">${imgHtml}</span></div>`:''}
-        <div class="tcf-actions">
-          <button class="tcf-edit" onclick="openEdit('${docId}')">✏️ 修改 / 平倉</button>
-          <button class="tcf-del"  onclick="deleteTrade('${docId}')">🗑 刪除</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML = '';
+  filtered.forEach(t => el.appendChild(buildTradeCard(t)));
 }
+
+function buildTradeCard(t) {
+  const pnl    = calcPnl(t);
+  const open   = isOpen(t);
+  const docId  = t._docId || t.id;
+  const addon  = calcAddonInfo(t);
+
+  // PNL display
+  const pnlStr = open
+    ? '<span style="color:var(--gold)">持倉中</span>'
+    : '<span style="color:' + (pnl>=0?'var(--bull)':'var(--bear)') + ';font-family:var(--mono);font-weight:700">' + fmtMoney(pnl) + '</span>';
+
+  // 口數 + 均價 in header
+  const totalSize = addon ? addon.tot : (t.size||1);
+  const sizeInfo  = totalSize + ' 口/張' + (addon ? ' · 均 ' + addon.avg : '');
+
+  const errTags    = (t.errors||[]).map(e => '<span class="err-tag">' + (errLabel[e]||e) + '</span>').join('');
+  const sigTags    = (t.signals||[]).map(s => '<span class="sig-tag">' + getSigLabel(s) + '</span>').join('');
+  const mktTag     = t.market ? '<span class="mkt-tag mkt-' + t.market + '">' + mktLabel[t.market] + '</span>' : '';
+  const statusBadge = open
+    ? '<span class="status-badge badge-open">持倉中</span>'
+    : '<span class="status-badge badge-closed">已平倉</span>';
+  const imgHtml    = renderImgs(t.images);
+  const targetStr  = t.targetPrice ? ' · 目標 <b style="color:var(--bull)">' + t.targetPrice + '</b>' : '';
+  const addonRow   = addon
+    ? '<div class="tcf-row"><span class="tcf-key">加碼均價</span><span class="tcf-val" style="color:var(--blue);font-family:var(--mono);font-weight:700">均價 ' + addon.avg + ' · 共 ' + addon.tot + ' 口/張（含 ' + addon.count + ' 筆加碼）</span></div>'
+    : '';
+  const holdRow    = (t.holdPlan||t.holdDays)
+    ? '<div class="tcf-row"><span class="tcf-key">持倉計畫</span><span class="tcf-val">' + holdPlanLabel(t.holdPlan) + (t.holdDays?' · 實際 '+t.holdDays+' 天':'') + '</span></div>'
+    : '';
+  const pnlRow     = (t.pnlAmt!==null && t.pnlAmt!==undefined)
+    ? '<div class="tcf-row"><span class="tcf-key">實際損益</span><span class="tcf-val" style="color:' + (t.pnlAmt>=0?'var(--bull)':'var(--bear)') + ';font-weight:700;font-family:var(--mono)">' + fmtMoney(t.pnlAmt) + '</span></div>'
+    : '';
+
+  // Build HTML using a div with data-docid to avoid all quote issues in onclick
+  const div = document.createElement('div');
+  div.className = 'trade-card-full';
+  div.dataset.docid = docId;
+  div.innerHTML =
+    '<div class="tcf-header">'
+    + '<span class="tc-dir ' + t.dir + '">' + (t.dir==='long'?'▲':'▼') + '</span>'
+    + '<div style="flex:1;min-width:0">'
+    +   '<div style="font-size:15px;font-weight:700">' + (catIcon[t.cat||'tw']||'') + ' ' + t.sym + statusBadge + '</div>'
+    +   '<div style="font-size:12px;color:var(--soft);margin-top:2px">' + (t.date||'') + ' ' + mktTag + ' <span style="font-family:var(--mono);font-size:11px;color:var(--soft)">' + sizeInfo + '</span></div>'
+    + '</div>'
+    + pnlStr
+    + '<span style="color:var(--dim);margin-left:6px">›</span>'
+    + '</div>'
+    + '<div class="tcf-body" id="tcf-' + docId + '">'
+    +   '<div class="tcf-row"><span class="tcf-key">進場</span><span class="tcf-val">' + t.entryPrice + ' → 停損 ' + (t.stopPrice||'—') + targetStr + '</span></div>'
+    +   addonRow + holdRow
+    +   '<div class="tcf-row"><span class="tcf-key">出場</span><span class="tcf-val">' + (t.exitPrice||'持倉中') + ' （' + (exitLabel[t.exitReason]||'—') + '）</span></div>'
+    +   pnlRow
+    +   (t.market ? '<div class="tcf-row"><span class="tcf-key">市場</span><span class="tcf-val">' + mktLabel[t.market] + (t.marketNote?' · '+t.marketNote:'') + '</span></div>' : '')
+    +   (t.reason ? '<div class="tcf-row"><span class="tcf-key">進場理由</span><span class="tcf-val">' + t.reason + '</span></div>' : '')
+    +   (sigTags  ? '<div class="tcf-row"><span class="tcf-key">訊號</span><span class="tcf-val sig-tags">' + sigTags + '</span></div>' : '')
+    +   (errTags  ? '<div class="tcf-row"><span class="tcf-key">錯誤</span><span class="tcf-val err-tags">' + errTags + '</span></div>' : '')
+    +   (t.review ? '<div class="tcf-row"><span class="tcf-key">檢討</span><span class="tcf-val">' + t.review + '</span></div>' : '')
+    +   (imgHtml  ? '<div class="tcf-row"><span class="tcf-key">截圖</span><span class="tcf-val">' + imgHtml + '</span></div>' : '')
+    +   '<div class="tcf-actions" style="display:flex;border-top:1px solid var(--line)">'
+    +     (open
+        ? '<button class="tcf-edit btn-open-edit" style="flex:2;font-size:18px" title="修改 / 加碼 / 平倉">✍️</button><div style="width:1px;background:var(--line)"></div>'
+        : '<button class="tcf-edit btn-open-edit" style="font-size:18px" title="修改">✍️</button><div style="width:1px;background:var(--line)"></div>')
+    +     '<button class="tcf-del btn-del-trade" style="font-size:18px" title="刪除">🗑</button>'
+    +   '</div>'
+    + '</div>';
+
+  // Attach event listeners - stopPropagation prevents header toggle
+  div.querySelector('.tcf-header').addEventListener('click', function(e) {
+    // only toggle if clicking the header itself, not buttons inside
+    if (!e.target.closest('button')) toggleExpand(docId);
+  });
+  div.querySelector('.btn-open-edit').addEventListener('click', function(e) {
+    e.stopPropagation();
+    openEdit(docId);
+  });
+  div.querySelector('.btn-del-trade').addEventListener('click', function(e) {
+    e.stopPropagation();
+    deleteTrade(docId);
+  });
+
+  return div;
+}
+
 
 function renderReview() {
   const all = allTrades.filter(t=>t.review||(t.errors&&t.errors.length)).slice().reverse();
@@ -1390,7 +1751,7 @@ function renderReview() {
     const pnl  = calcPnl(t);
     const open = isOpen(t);
     const errs = (t.errors||[]).map(e=>`<span class="err-tag">${errLabel[e]||e}</span>`).join('')||'<span style="color:var(--dim);font-size:12px">無</span>';
-    const sigs = (t.signals||[]).map(s=>`<span class="sig-tag">${sigLabel[s]||s}</span>`).join('')||'<span style="color:var(--dim);font-size:12px">無</span>';
+    const sigs = (t.signals||[]).map(s=>`<span class="sig-tag">${getSigLabel(s)||s}</span>`).join('')||'<span style="color:var(--dim);font-size:12px">無</span>';
     return `<div class="review-card">
       <div class="rc-head">
         <span class="tc-dir ${t.dir}">${t.dir==='long'?'▲':'▼'}</span>
@@ -1411,6 +1772,7 @@ function renderReview() {
 // ── INIT ──
 document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 renderPresets();
+renderSigChips();
 
 window.addEventListener('fb-ready', async () => {
   setConn('loading','連線中...');
@@ -1418,14 +1780,13 @@ window.addEventListener('fb-ready', async () => {
     const saved = await window._fb.getPresets();
     Object.keys(saved).forEach(k => {
       if (!saved[k]) return;
-      if (k.startsWith('_del_')) {
-        const cat = k.replace('_del_', '');
-        deletedDefaults[cat] = saved[k];
-      } else {
-        customPresets[k] = saved[k];
-      }
+      if (k === '_sigs_custom')       customSignals  = saved[k];
+      else if (k === '_sigs_deleted') deletedSignals = saved[k];
+      else if (k.startsWith('_del_')) { const cat = k.replace('_del_',''); deletedDefaults[cat] = saved[k]; }
+      else customPresets[k] = saved[k];
     });
     renderPresets();
+    renderSigChips();
   } catch(e) { console.warn('Presets load failed', e); }
 
   window._fb.listen(trades => {
@@ -1442,5 +1803,4 @@ setTimeout(() => {
   if (!window._fb) { setConn('offline','離線模式'); }
 }, 5000);
 </script>
-
-  </body>
+</body>
