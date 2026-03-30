@@ -1,4 +1,5 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -8,6 +9,7 @@
 <title>交易日誌</title>
 
 <!-- Firebase -->
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc,
@@ -404,12 +406,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .hist-img img{width:100%;height:100%;object-fit:cover;display:block}
 .hist-img .img-loading{font-size:20px;opacity:.4}
 </style>
+
 </head>
 <body>
 
 <div class="sync-bar" id="sync-bar"></div>
 
 <!-- BOTTOM NAV -->
+
 <div class="bnav">
   <div class="bnav-item active" onclick="go('home')"><div class="bi">📊</div><div class="bl">總覽</div></div>
   <div class="bnav-item" onclick="go('new')"><div class="bi">✏️</div><div class="bl">記錄</div></div>
@@ -420,12 +424,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 <div class="toast" id="toast"></div>
 
 <!-- LIGHTBOX -->
+
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
 
 <!-- PRESET MANAGER MODAL -->
+
 <div class="preset-modal-overlay" id="preset-modal">
   <div class="preset-modal">
     <div class="preset-modal-title">
@@ -448,6 +454,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- EDIT MODAL -->
+
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-title">
@@ -489,6 +496,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══ HOME ══ -->
+
 <div class="page active" id="page-home">
   <div class="ph">
     <div>
@@ -509,6 +517,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 
   <!-- 持倉/平倉統計 -->
+
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
     <div class="stat" style="border-left:3px solid var(--gold)">
       <div class="stat-l">持倉中</div>
@@ -540,157 +549,172 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══ NEW ══ -->
+
 <div class="page" id="page-new">
   <div class="ph">
     <div><div class="ph-title">記錄交易</div><div class="ph-sub">進場前填，出場後再補</div></div>
   </div>
   <div class="form-wrap">
 
-    <div class="form-section">
-      <div class="fs-title">📌 基本資訊</div>
-      <div class="field"><label>日期</label><input type="date" id="f-date"></div>
+```
+<div class="form-section">
+  <div class="fs-title">📌 基本資訊</div>
+  <div class="field"><label>日期</label><input type="date" id="f-date"></div>
 
-      <!-- 四大類別 -->
-      <div class="field" style="padding-bottom:4px"><label>交易類別</label></div>
-      <div class="cat-tabs">
-        <div class="cat-btn active-cat" id="cat-tw" onclick="setCat('tw')"><span class="cat-icon">🇹🇼</span>台股</div>
-        <div class="cat-btn" id="cat-fut" onclick="setCat('fut')"><span class="cat-icon">📈</span>台指期</div>
-        <div class="cat-btn" id="cat-os" onclick="setCat('os')"><span class="cat-icon">🌐</span>海外期貨</div>
-        <div class="cat-btn" id="cat-crypto" onclick="setCat('crypto')"><span class="cat-icon">₿</span>虛擬貨幣</div>
+  <!-- 四大類別 -->
+  <div class="field" style="padding-bottom:4px"><label>交易類別</label></div>
+  <div class="cat-tabs">
+    <div class="cat-btn active-cat" id="cat-tw" onclick="setCat('tw')"><span class="cat-icon">🇹🇼</span>台股</div>
+    <div class="cat-btn" id="cat-fut" onclick="setCat('fut')"><span class="cat-icon">📈</span>台指期</div>
+    <div class="cat-btn" id="cat-os" onclick="setCat('os')"><span class="cat-icon">🌐</span>海外期貨</div>
+    <div class="cat-btn" id="cat-crypto" onclick="setCat('crypto')"><span class="cat-icon">₿</span>虛擬貨幣</div>
+  </div>
+
+  <div class="field" style="padding-top:12px;padding-bottom:4px">
+    <label style="display:flex;align-items:center;justify-content:space-between">
+      <span>快選標的</span>
+      <span onclick="openPresetModal()" style="color:var(--blue);font-size:11px;cursor:pointer;
+        letter-spacing:1px;font-weight:600;display:flex;align-items:center;gap:4px">
+        ⚙️ 管理標的
+      </span>
+    </label>
+  </div>
+  <div class="sym-presets" id="sym-presets"></div>
+
+  <div class="field"><label>標的名稱</label><input type="text" id="f-sym" placeholder="輸入或點上方快選"></div>
+
+  <div class="field">
+    <label>方向</label>
+    <div class="dir-toggle">
+      <div class="dir-btn active-long" id="btn-long" onclick="setDir('long')">▲ 做多</div>
+      <div class="dir-btn" id="btn-short" onclick="setDir('short')">▼ 做空</div>
+    </div>
+  </div>
+  <div class="field"><label>進場價格</label><input type="number" id="f-entry" placeholder="0" inputmode="decimal"></div>
+  <div class="field"><label>停損價格</label><input type="number" id="f-stop" placeholder="0" inputmode="decimal"></div>
+  <div class="field"><label>部位大小（口/張/顆）</label><input type="number" id="f-size" placeholder="1" inputmode="decimal"></div>
+  <div class="field"><label>預計持倉天數</label>
+    <select id="f-hold-plan">
+      <option value="">— 預計持倉 —</option>
+      <option value="1">當沖（當天）</option>
+      <option value="2">隔日沖（1~2天）</option>
+      <option value="5">短波段（3~5天）</option>
+      <option value="14">中波段（1~2週）</option>
+      <option value="30">長波段（1個月以上）</option>
+    </select>
+  </div>
+</div>
+
+<!-- 市場狀況 -->
+<div class="form-section">
+  <div class="fs-title">🌊 市場狀況（順勢 or 逆勢）</div>
+  <div class="field" style="padding-top:14px">
+    <div class="market-toggle">
+      <div class="mkt-btn" id="mkt-trend" onclick="setMkt('trend')">
+        <span class="mkt-icon">🚀</span>順勢<br><span style="font-size:10px;color:inherit;opacity:.7">趨勢跟單</span>
       </div>
-
-      <div class="field" style="padding-top:12px;padding-bottom:4px">
-        <label style="display:flex;align-items:center;justify-content:space-between">
-          <span>快選標的</span>
-          <span onclick="openPresetModal()" style="color:var(--blue);font-size:11px;cursor:pointer;
-            letter-spacing:1px;font-weight:600;display:flex;align-items:center;gap:4px">
-            ⚙️ 管理標的
-          </span>
-        </label>
+      <div class="mkt-btn" id="mkt-counter" onclick="setMkt('counter')">
+        <span class="mkt-icon">🔄</span>逆勢<br><span style="font-size:10px;color:inherit;opacity:.7">反轉搶單</span>
       </div>
-      <div class="sym-presets" id="sym-presets"></div>
-
-      <div class="field"><label>標的名稱</label><input type="text" id="f-sym" placeholder="輸入或點上方快選"></div>
-
-      <div class="field">
-        <label>方向</label>
-        <div class="dir-toggle">
-          <div class="dir-btn active-long" id="btn-long" onclick="setDir('long')">▲ 做多</div>
-          <div class="dir-btn" id="btn-short" onclick="setDir('short')">▼ 做空</div>
-        </div>
-      </div>
-      <div class="field"><label>進場價格</label><input type="number" id="f-entry" placeholder="0" inputmode="decimal"></div>
-      <div class="field"><label>停損價格</label><input type="number" id="f-stop" placeholder="0" inputmode="decimal"></div>
-      <div class="field"><label>部位大小（口/張/顆）</label><input type="number" id="f-size" placeholder="1" inputmode="decimal"></div>
-      <div class="field"><label>預計持倉天數</label>
-        <select id="f-hold-plan">
-          <option value="">— 預計持倉 —</option>
-          <option value="1">當沖（當天）</option>
-          <option value="2">隔日沖（1~2天）</option>
-          <option value="5">短波段（3~5天）</option>
-          <option value="14">中波段（1~2週）</option>
-          <option value="30">長波段（1個月以上）</option>
-        </select>
+      <div class="mkt-btn" id="mkt-range" onclick="setMkt('range')">
+        <span class="mkt-icon">↔️</span>區間<br><span style="font-size:10px;color:inherit;opacity:.7">震盪操作</span>
       </div>
     </div>
+  </div>
+  <div class="field"><label>市場備註（選填）</label>
+    <input type="text" id="f-mkt-note" placeholder="例：突破前高後拉回測試，順勢做多">
+  </div>
+</div>
 
-    <!-- 市場狀況 -->
-    <div class="form-section">
-      <div class="fs-title">🌊 市場狀況（順勢 or 逆勢）</div>
-      <div class="field" style="padding-top:14px">
-        <div class="market-toggle">
-          <div class="mkt-btn" id="mkt-trend" onclick="setMkt('trend')">
-            <span class="mkt-icon">🚀</span>順勢<br><span style="font-size:10px;color:inherit;opacity:.7">趨勢跟單</span>
-          </div>
-          <div class="mkt-btn" id="mkt-counter" onclick="setMkt('counter')">
-            <span class="mkt-icon">🔄</span>逆勢<br><span style="font-size:10px;color:inherit;opacity:.7">反轉搶單</span>
-          </div>
-          <div class="mkt-btn" id="mkt-range" onclick="setMkt('range')">
-            <span class="mkt-icon">↔️</span>區間<br><span style="font-size:10px;color:inherit;opacity:.7">震盪操作</span>
-          </div>
-        </div>
-      </div>
-      <div class="field"><label>市場備註（選填）</label>
-        <input type="text" id="f-mkt-note" placeholder="例：突破前高後拉回測試，順勢做多">
-      </div>
+<!-- 訊號確認 -->
+<div class="form-section">
+  <div class="fs-title">✅ 進場訊號確認</div>
+  <div class="chip-group" id="sig-chips">
+    <div class="chip-btn" data-val="ma_align" onclick="toggleChip(this,'bull')">MA 三線排列</div>
+    <div class="chip-btn" data-val="macd_zero" onclick="toggleChip(this,'bull')">MACD 正確軸側</div>
+    <div class="chip-btn" data-val="macd_flip" onclick="toggleChip(this,'bull')">紅柱翻正</div>
+    <div class="chip-btn" data-val="stop_k" onclick="toggleChip(this,'bull')">止跌K棒</div>
+    <div class="chip-btn" data-val="close_ma" onclick="toggleChip(this,'bull')">站上15MA</div>
+    <div class="chip-btn" data-val="diverge" onclick="toggleChip(this,'bull')">背離訊號</div>
+  </div>
+  <div class="field"><label>進場理由（一句話）</label>
+    <textarea id="f-reason" placeholder="例：日K多頭，60K MACD紅柱翻出，收盤站上15MA，1/3試多"></textarea>
+  </div>
+</div>
+
+<!-- 截圖 -->
+<div class="form-section">
+  <div class="fs-title">📸 K線截圖（儲存後可在歷史點開看）</div>
+  <!-- hidden inputs -->
+  <input type="file" id="f-imgs-lib"    accept="image/*" multiple style="display:none" onchange="handleImgSelect(this)">
+  <input type="file" id="f-imgs-camera" accept="image/*" capture="environment" style="display:none" onchange="handleImgSelect(this)">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 4px">
+    <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-lib').click()">
+      <div class="img-upload-icon">🖼️</div>
+      <div class="img-upload-text" style="font-size:13px">從相簿選取</div>
+      <div class="img-upload-sub">可多選</div>
     </div>
-
-    <!-- 訊號確認 -->
-    <div class="form-section">
-      <div class="fs-title">✅ 進場訊號確認</div>
-      <div class="chip-group" id="sig-chips">
-        <div class="chip-btn" data-val="ma_align" onclick="toggleChip(this,'bull')">MA 三線排列</div>
-        <div class="chip-btn" data-val="macd_zero" onclick="toggleChip(this,'bull')">MACD 正確軸側</div>
-        <div class="chip-btn" data-val="macd_flip" onclick="toggleChip(this,'bull')">紅柱翻正</div>
-        <div class="chip-btn" data-val="stop_k" onclick="toggleChip(this,'bull')">止跌K棒</div>
-        <div class="chip-btn" data-val="close_ma" onclick="toggleChip(this,'bull')">站上15MA</div>
-        <div class="chip-btn" data-val="diverge" onclick="toggleChip(this,'bull')">背離訊號</div>
-      </div>
-      <div class="field"><label>進場理由（一句話）</label>
-        <textarea id="f-reason" placeholder="例：日K多頭，60K MACD紅柱翻出，收盤站上15MA，1/3試多"></textarea>
-      </div>
+    <div class="img-upload-area" style="margin:0" onclick="document.getElementById('f-imgs-camera').click()">
+      <div class="img-upload-icon">📷</div>
+      <div class="img-upload-text" style="font-size:13px">直接拍照</div>
+      <div class="img-upload-sub">開啟相機</div>
     </div>
+  </div>
+  <div class="img-upload-progress" id="img-progress"><div class="bar" id="img-bar"></div></div>
+  <div class="img-previews" id="img-previews"></div>
+</div>
 
-    <!-- 截圖 -->
-    <div class="form-section">
-      <div class="fs-title">📸 K線截圖（儲存後可在歷史點開看）</div>
-      <div class="img-upload-area" onclick="document.getElementById('f-imgs').click()">
-        <input type="file" id="f-imgs" accept="image/*" multiple capture="environment" onchange="handleImgSelect(this)">
-        <div class="img-upload-icon">📷</div>
-        <div class="img-upload-text">點此從相簿選取 / 拍照</div>
-        <div class="img-upload-sub">可一次選多張 · 圖片上傳到雲端永久保存</div>
-      </div>
-      <div class="img-upload-progress" id="img-progress"><div class="bar" id="img-bar"></div></div>
-      <div class="img-previews" id="img-previews"></div>
-    </div>
+<!-- 出場（可後補） -->
+<div class="form-section">
+  <div class="fs-title">🚪 出場資訊（可出場後再補）</div>
+  <div class="field"><label>平倉狀態</label>
+    <select id="f-status">
+      <option value="open">📌 持倉中</option>
+      <option value="closed">✅ 已平倉</option>
+    </select>
+  </div>
+  <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
+  <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
+  <div class="field"><label>實際損益金額（選填）</label>
+    <input type="number" id="f-pnl-amt" placeholder="填實際獲利或虧損金額，例 5000" inputmode="decimal">
+  </div>
+  <div class="field"><label>出場原因</label>
+    <select id="f-exit-r">
+      <option value="">— 選擇 —</option>
+      <option value="stop">停損觸發</option>
+      <option value="ma15">15MA跌破</option>
+      <option value="diverge">頂背離</option>
+      <option value="target">目標達到</option>
+    </select>
+  </div>
+</div>
 
-    <!-- 出場（可後補） -->
-    <div class="form-section">
-      <div class="fs-title">🚪 出場資訊（可出場後再補）</div>
-      <div class="field"><label>平倉狀態</label>
-        <select id="f-status">
-          <option value="open">📌 持倉中</option>
-          <option value="closed">✅ 已平倉</option>
-        </select>
-      </div>
-      <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
-      <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
-      <div class="field"><label>實際損益金額（選填）</label>
-        <input type="number" id="f-pnl-amt" placeholder="填實際獲利或虧損金額，例 5000" inputmode="decimal">
-      </div>
-      <div class="field"><label>出場原因</label>
-        <select id="f-exit-r">
-          <option value="">— 選擇 —</option>
-          <option value="stop">停損觸發</option>
-          <option value="ma15">15MA跌破</option>
-          <option value="diverge">頂背離</option>
-          <option value="target">目標達到</option>
-        </select>
-      </div>
-    </div>
+<!-- 錯誤 -->
+<div class="form-section">
+  <div class="fs-title">❌ 這筆犯了哪些錯？</div>
+  <div class="chip-group" id="err-chips">
+    <div class="chip-btn" data-val="early" onclick="toggleChip(this,'bear')">進場太早</div>
+    <div class="chip-btn" data-val="late_exit" onclick="toggleChip(this,'bear')">出場太晚</div>
+    <div class="chip-btn" data-val="no_stop" onclick="toggleChip(this,'bear')">沒執行停損</div>
+    <div class="chip-btn" data-val="oversize" onclick="toggleChip(this,'bear')">倉位太重</div>
+    <div class="chip-btn" data-val="revenge" onclick="toggleChip(this,'bear')">報復性交易</div>
+    <div class="chip-btn" data-val="no_signal" onclick="toggleChip(this,'bear')">無訊號進場</div>
+  </div>
+  <div class="field"><label>事後檢討</label>
+    <textarea id="f-review" placeholder="例：黑柱縮小就進了，沒等紅柱翻正。下次一定等訊號完成再進。"></textarea>
+  </div>
+</div>
 
-    <!-- 錯誤 -->
-    <div class="form-section">
-      <div class="fs-title">❌ 這筆犯了哪些錯？</div>
-      <div class="chip-group" id="err-chips">
-        <div class="chip-btn" data-val="early" onclick="toggleChip(this,'bear')">進場太早</div>
-        <div class="chip-btn" data-val="late_exit" onclick="toggleChip(this,'bear')">出場太晚</div>
-        <div class="chip-btn" data-val="no_stop" onclick="toggleChip(this,'bear')">沒執行停損</div>
-        <div class="chip-btn" data-val="oversize" onclick="toggleChip(this,'bear')">倉位太重</div>
-        <div class="chip-btn" data-val="revenge" onclick="toggleChip(this,'bear')">報復性交易</div>
-        <div class="chip-btn" data-val="no_signal" onclick="toggleChip(this,'bear')">無訊號進場</div>
-      </div>
-      <div class="field"><label>事後檢討</label>
-        <textarea id="f-review" placeholder="例：黑柱縮小就進了，沒等紅柱翻正。下次一定等訊號完成再進。"></textarea>
-      </div>
-    </div>
+<button class="btn-save" onclick="saveTrade()">💾 儲存這筆交易</button>
+<button class="btn-reset" onclick="resetForm()">清除重填</button>
+```
 
-    <button class="btn-save" onclick="saveTrade()">💾 儲存這筆交易</button>
-    <button class="btn-reset" onclick="resetForm()">清除重填</button>
   </div>
 </div>
 
 <!-- ══ HISTORY ══ -->
+
 <div class="page" id="page-history">
   <div class="ph">
     <div><div class="ph-title">歷史紀錄</div><div class="ph-sub" id="hist-sub">共 0 筆</div></div>
@@ -708,6 +732,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══ REVIEW ══ -->
+
 <div class="page" id="page-review">
   <div class="ph">
     <div><div class="ph-title">錯誤檢討</div><div class="ph-sub">有填檢討或有勾錯誤的筆</div></div>
@@ -883,16 +908,21 @@ function setChips(groupId, vals) {
 
 // ── IMAGE HANDLING (Storage) ──
 function handleImgSelect(input) {
-  Array.from(input.files).forEach(file => {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let loaded = 0;
+  files.forEach(file => {
     const r = new FileReader();
     r.onload = e => {
       pendingFiles.push(file);
       pendingPreviews.push({ dataUrl: e.target.result, file });
-      renderPreviews();
+      loaded++;
+      if (loaded === files.length) renderPreviews();
     };
     r.readAsDataURL(file);
   });
   input.value = '';
+  showToast(`已選取 ${files.length} 張截圖`);
 }
 
 function renderPreviews() {
@@ -911,21 +941,56 @@ function removeImg(i) {
   renderPreviews();
 }
 
+// Compress image before upload (max 1200px wide, quality 0.75)
+async function compressImage(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+        'image/jpeg', 0.75);
+    };
+    img.src = url;
+  });
+}
+
 async function uploadAllImages(tradeId) {
-  if (!pendingFiles.length || !window._fb) return [];
+  if (!pendingFiles.length) return [];
   const prog = document.getElementById('img-progress');
   const bar  = document.getElementById('img-bar');
   prog.classList.add('show');
   const results = [];
+
+  if (!window._fb || !window._fb.uploadImage) {
+    // Fallback: store as base64 if Storage not available
+    for (let i = 0; i < pendingPreviews.length; i++) {
+      results.push({ url: pendingPreviews[i].dataUrl, path: '' });
+    }
+    prog.classList.remove('show');
+    return results;
+  }
+
   for (let i = 0; i < pendingFiles.length; i++) {
-    bar.style.width = Math.round((i / pendingFiles.length) * 100) + '%';
+    bar.style.width = Math.round(((i) / pendingFiles.length) * 100) + '%';
     try {
-      const r = await window._fb.uploadImage(tradeId, pendingFiles[i], i);
-      results.push(r); // { url, path }
-    } catch(e) { console.error('Upload failed', e); }
+      const compressed = await compressImage(pendingFiles[i]);
+      const r = await window._fb.uploadImage(tradeId, compressed, i);
+      results.push(r);
+    } catch(e) {
+      console.error('Upload failed', e);
+      // fallback to base64 for this image
+      if (pendingPreviews[i]) results.push({ url: pendingPreviews[i].dataUrl, path: '' });
+    }
   }
   bar.style.width = '100%';
-  setTimeout(() => { prog.classList.remove('show'); bar.style.width = '0%'; }, 600);
+  setTimeout(() => { prog.classList.remove('show'); bar.style.width = '0%'; }, 800);
   return results;
 }
 
@@ -981,7 +1046,7 @@ async function saveTrade() {
   const pnlRaw  = document.getElementById('f-pnl-amt').value;
 
   // Upload images first
-  showToast('上傳截圖中...');
+  if (pendingFiles.length > 0) showToast(`上傳 ${pendingFiles.length} 張截圖中...`);
   const imageRefs = await uploadAllImages(tradeId);
 
   const t = {
@@ -1036,6 +1101,10 @@ function resetForm() {
   pendingFiles = []; pendingPreviews = [];
   const pp = document.getElementById('img-previews');
   if(pp) pp.innerHTML = '';
+  const fi1 = document.getElementById('f-imgs-lib');
+  const fi2 = document.getElementById('f-imgs-camera');
+  if(fi1) fi1.value = '';
+  if(fi2) fi2.value = '';
 }
 
 function setDir(d) {
@@ -1373,1306 +1442,5 @@ setTimeout(() => {
   if (!window._fb) { setConn('offline','離線模式'); }
 }, 5000);
 </script>
-</body>--s2:    #161922;
-    --s3:    #1c2030;
-    --line:  #222840;
-    --bull:  #00d68f;
-    --bear:  #ff4d6a;
-    --gold:  #f5b731;
-    --blue:  #38bdf8;
-    --text:  #f0f4f8;
-    --soft:  #8898aa;
-    --dim:   #3d4a5c;
-    --mono:  'JetBrains Mono', monospace;
-    --radius: 14px;
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
 
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif;
-    min-height: 100vh;
-    padding-bottom: calc(72px + var(--safe-bottom));
-    overflow-x: hidden;
-  }
-
-  /* ── BOTTOM NAV ── */
-  .bnav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--s1);
-    border-top: 1px solid var(--line);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding-bottom: var(--safe-bottom);
-    z-index: 200;
-  }
-  .bnav-item {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 10px 4px 8px;
-    cursor: pointer;
-    gap: 4px;
-    transition: all .15s;
-  }
-  .bnav-item .bi { font-size: 22px; }
-  .bnav-item .bl {
-    font-size: 10px;
-    color: var(--soft);
-    letter-spacing: .3px;
-    transition: color .15s;
-  }
-  .bnav-item.active .bl { color: var(--bull); }
-  .bnav-item.active .bi { filter: drop-shadow(0 0 6px var(--bull)); }
-
-  /* ── PAGES ── */
-  .page { display: none; padding: 16px 16px 8px; }
-  .page.active { display: block; }
-
-  /* ── PAGE HEADER ── */
-  .ph {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px;
-    padding-top: 8px;
-  }
-  .ph-title { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
-  .ph-sub { font-size: 12px; color: var(--soft); margin-top: 2px; }
-  .ph-right { font-family: var(--mono); font-size: 11px; color: var(--dim); text-align: right; }
-
-  /* ── STATS GRID ── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .stat {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
-  }
-  .stat.wide { grid-column: 1 / -1; }
-  .stat-l {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .stat-v {
-    font-family: var(--mono);
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .stat-s { font-size: 12px; color: var(--soft); margin-top: 5px; }
-  .bull-c { color: var(--bull); }
-  .bear-c { color: var(--bear); }
-  .gold-c { color: var(--gold); }
-  .blue-c { color: var(--blue); }
-
-  /* ── SIGNAL ACCURACY ── */
-  .sig-row {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .sig-header {
-    padding: 14px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .sig-item {
-    display: flex; align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--line);
-    gap: 12px;
-  }
-  .sig-item:last-child { border-bottom: none; }
-  .sig-name { font-size: 13px; flex: 1; }
-  .sig-bar-wrap { width: 80px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
-  .sig-bar { height: 100%; border-radius: 3px; background: var(--bull); transition: width .4s ease; }
-  .sig-pct { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--bull); width: 36px; text-align: right; }
-
-  /* ── ERROR PILLS ── */
-  .err-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .err-card {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 14px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .err-n {
-    font-family: var(--mono);
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--bear);
-    min-width: 32px;
-  }
-  .err-l { font-size: 12px; color: var(--soft); line-height: 1.4; }
-
-  /* ── RECENT LIST ── */
-  .recent-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
-
-  .trade-card {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .trade-card.win { border-left: 3px solid var(--bull); }
-  .trade-card.loss { border-left: 3px solid var(--bear); }
-  .trade-card.open { border-left: 3px solid var(--gold); }
-
-  .tc-dir {
-    font-family: var(--mono);
-    font-size: 10px; font-weight: 700;
-    padding: 4px 8px; border-radius: 6px;
-    white-space: nowrap;
-  }
-  .tc-dir.long  { background:rgba(0,214,143,.12); color:var(--bull); }
-  .tc-dir.short { background:rgba(255,77,106,.12); color:var(--bear); }
-
-  .tc-main { flex: 1; min-width: 0; }
-  .tc-sym { font-size: 15px; font-weight: 700; }
-  .tc-date { font-size: 11px; color: var(--soft); margin-top: 2px; }
-
-  .tc-pnl {
-    font-family: var(--mono);
-    font-size: 16px; font-weight: 700;
-    white-space: nowrap;
-  }
-  .tc-pnl.pos { color: var(--bull); }
-  .tc-pnl.neg { color: var(--bear); }
-  .tc-pnl.neu { color: var(--gold); }
-
-  /* ── MONTHLY CHART ── */
-  .month-bars {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-  .mb-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
-  .mb-row {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px;
-  }
-  .mb-label { font-family: var(--mono); font-size: 11px; color: var(--soft); width: 36px; flex-shrink: 0; }
-  .mb-bar-wrap { flex: 1; height: 20px; background: var(--s2); border-radius: 4px; overflow: hidden; position: relative; }
-  .mb-bar { height: 100%; border-radius: 4px; min-width: 2px; transition: width .4s ease; }
-  .mb-bar.pos { background: rgba(0,214,143,.5); }
-  .mb-bar.neg { background: rgba(255,77,106,.5); }
-  .mb-val { font-family: var(--mono); font-size: 11px; width: 60px; text-align: right; flex-shrink: 0; }
-
-  /* ── FORM ── */
-  .form-wrap { padding-bottom: 20px; }
-
-  .form-section {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .fs-title {
-    padding: 14px 16px;
-    font-size: 13px; font-weight: 700;
-    border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; gap: 8px;
-    background: var(--s2);
-  }
-
-  .field { padding: 0 16px 14px; }
-  .field:first-of-type { padding-top: 14px; }
-  .field label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 7px;
-  }
-  .field input, .field select, .field textarea {
-    width: 100%;
-    background: var(--s2);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    color: var(--text);
-    padding: 13px 14px;
-    font-size: 15px;
-    font-family: 'Noto Sans TC', sans-serif;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: border-color .15s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--bull);
-    background: var(--s3);
-  }
-  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238898aa' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-  .field select option { background: #161922; }
-  .field textarea { resize: none; min-height: 80px; line-height: 1.6; }
-
-  /* direction toggle */
-  .dir-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .dir-btn {
-    padding: 14px;
-    border-radius: 10px;
-    border: 1.5px solid var(--line);
-    background: var(--s2);
-    color: var(--soft);
-    font-size: 15px; font-weight: 700;
-    cursor: pointer; text-align: center;
-    transition: all .15s;
-    font-family: 'Noto Sans TC', sans-serif;
-  }
-  .dir-btn.active-long  { background: rgba(0,214,143,.12); border-color: var(--bull); color: var(--bull); }
-  .dir-btn.active-short { background: rgba(255,77,106,.12); border-color: var(--bear); color: var(--bear); }
-
-  /* check chips */
-  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; }
-  .chip-btn {
-    padding: 9px 14px;
-    border-radius: 20px;
-    border: 1.5px solid var(--line);
-    background: var(--s2);
-    color: var(--soft);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all .15s;
-    user-select: none;
-    -webkit-user-select: none;
-    font-family: 'Noto Sans TC', sans-serif;
-  }
-  .chip-btn.on-bull { border-color: var(--bull); color: var(--bull); background: rgba(0,214,143,.08); }
-  .chip-btn.on-bear { border-color: var(--bear); color: var(--bear); background: rgba(255,77,106,.08); }
-
-  /* save button */
-  .btn-save {
-    width: 100%;
-    background: var(--bull);
-    color: #000;
-    font-size: 16px; font-weight: 900;
-    padding: 17px;
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    margin-bottom: 10px;
-    font-family: 'Noto Sans TC', sans-serif;
-    letter-spacing: .5px;
-    transition: opacity .15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-save:active { opacity: .8; }
-  .btn-reset {
-    width: 100%;
-    background: var(--s1);
-    color: var(--soft);
-    font-size: 14px;
-    padding: 14px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-family: 'Noto Sans TC', sans-serif;
-    transition: all .15s;
-  }
-  .btn-reset:active { background: var(--s2); }
-
-  /* ── HISTORY PAGE ── */
-  .filter-row {
-    display: flex; gap: 8px; margin-bottom: 16px;
-    overflow-x: auto; padding-bottom: 4px;
-  }
-  .filter-row::-webkit-scrollbar { display: none; }
-  .fb {
-    padding: 7px 16px;
-    border-radius: 20px;
-    border: 1px solid var(--line);
-    background: var(--s1);
-    color: var(--soft);
-    font-size: 13px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all .15s;
-    font-family: 'Noto Sans TC', sans-serif;
-  }
-  .fb.active { background: rgba(0,214,143,.1); border-color: var(--bull); color: var(--bull); }
-
-  /* trade detail expand */
-  .trade-card-full {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 10px;
-  }
-  .tcf-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-  }
-  .tcf-body {
-    border-top: 1px solid var(--line);
-    padding: 14px 16px;
-    display: none;
-  }
-  .tcf-body.open { display: block; }
-  .tcf-row {
-    display: flex; gap: 8px;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-  .tcf-key { color: var(--soft); min-width: 70px; flex-shrink: 0; }
-  .tcf-val { color: var(--text); line-height: 1.5; flex: 1; }
-  .tcf-del {
-    display: flex; align-items: center; justify-content: center;
-    padding: 10px 16px;
-    border-top: 1px solid var(--line);
-    color: var(--bear);
-    font-size: 13px;
-    cursor: pointer;
-    background: rgba(255,77,106,.04);
-    transition: background .15s;
-  }
-  .tcf-del:active { background: rgba(255,77,106,.1); }
-
-  /* ── REVIEW PAGE ── */
-  .review-card {
-    background: var(--s1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .rc-head {
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px;
-    background: var(--s2);
-    border-bottom: 1px solid var(--line);
-  }
-  .rc-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
-  .rc-field label { display: block; font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-  .rc-field p { font-size: 13px; color: var(--soft); line-height: 1.6; }
-  .err-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .err-tag { padding: 4px 10px; border-radius: 20px; font-size: 12px; background: rgba(255,77,106,.1); color: var(--bear); border: 1px solid rgba(255,77,106,.2); }
-  .sig-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .sig-tag { padding: 4px 10px; border-radius: 20px; font-size: 12px; background: rgba(0,214,143,.08); color: var(--bull); border: 1px solid rgba(0,214,143,.2); }
-
-  /* ── EMPTY ── */
-  .empty { text-align: center; padding: 48px 20px; color: var(--dim); }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .35; }
-  .empty p { font-size: 14px; line-height: 1.8; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: calc(80px + var(--safe-bottom) + 12px);
-    left: 50%; transform: translateX(-50%);
-    background: var(--bull);
-    color: #000;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 12px 24px;
-    border-radius: 24px;
-    z-index: 300;
-    opacity: 0;
-    transition: opacity .2s;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
-
-  /* ── SYNC STATUS ── */
-  .sync-bar {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: 3px; z-index: 999;
-    background: linear-gradient(90deg, var(--bull), var(--blue));
-    transform: scaleX(0); transform-origin: left;
-    transition: transform .3s ease;
-  }
-  .sync-bar.active { transform: scaleX(1); }
-  .sync-bar.done   { transform: scaleX(1); opacity: 0; transition: opacity .5s .3s; }
-
-  .conn-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    display: inline-block; margin-right: 5px;
-    vertical-align: middle;
-  }
-  .conn-dot.online  { background: var(--bull); box-shadow: 0 0 6px var(--bull); }
-  .conn-dot.offline { background: var(--bear); }
-  .conn-dot.loading { background: var(--gold); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-  /* ── CATEGORY SELECTOR ── */
-  .cat-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 14px 16px 0;
-  }
-  .cat-btn {
-    padding: 10px 6px;
-    border-radius: 10px;
-    border: 1.5px solid var(--line);
-    background: var(--s2);
-    color: var(--soft);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all .15s;
-    font-family: 'Noto Sans TC', sans-serif;
-    line-height: 1.3;
-  }
-  .cat-btn .cat-icon { font-size: 18px; display: block; margin-bottom: 3px; }
-  .cat-btn.active-cat {
-    border-color: var(--blue);
-    color: var(--blue);
-    background: rgba(56,189,248,.08);
-  }
-
-  /* sym presets */
-  .sym-presets {
-    display: flex; flex-wrap: wrap; gap: 7px;
-    padding: 10px 16px 14px;
-  }
-  .sym-preset {
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--line);
-    background: var(--s2);
-    color: var(--soft);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all .15s;
-    font-family: 'Noto Sans TC', sans-serif;
-  }
-  .sym-preset:active { background: var(--s3); color: var(--text); }
-
-  /* ── IMAGE UPLOAD ── */
-  .img-upload-area {
-    margin: 0 16px 14px;
-    border: 2px dashed var(--line);
-    border-radius: 12px;
-    padding: 20px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .2s;
-    background: var(--s2);
-    position: relative;
-  }
-  .img-upload-area:active { border-color: var(--blue); background: rgba(56,189,248,.05); }
-  .img-upload-area input[type=file] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .img-upload-icon { font-size: 28px; margin-bottom: 8px; }
-  .img-upload-text { font-size: 14px; color: var(--soft); }
-  .img-upload-sub  { font-size: 12px; color: var(--dim); margin-top: 4px; }
-
-  .img-previews {
-    display: flex; flex-wrap: wrap; gap: 8px;
-    padding: 0 16px 14px;
-  }
-  .img-thumb {
-    position: relative;
-    width: calc(50% - 4px);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--s2);
-    aspect-ratio: 16/10;
-  }
-  .img-thumb img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .img-thumb .del-img {
-    position: absolute;
-    top: 6px; right: 6px;
-    width: 24px; height: 24px;
-    background: rgba(0,0,0,.7);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    cursor: pointer;
-    color: #fff;
-    border: none;
-  }
-
-  /* img in history/review */
-  .hist-imgs {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-top: 10px;
-  }
-  .hist-img {
-    width: calc(50% - 3px);
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    cursor: pointer;
-    aspect-ratio: 16/10;
-  }
-  .hist-img img { width:100%; height:100%; object-fit:cover; display:block; }
-
-  /* lightbox */
-  .lightbox {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.92);
-    z-index: 500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .lightbox.open { display: flex; }
-  .lightbox img { max-width: 100%; max-height: 85vh; border-radius: 10px; object-fit: contain; }
-  .lightbox-close {
-    position: absolute; top: 20px; right: 20px;
-    font-size: 28px; color: #fff; cursor: pointer;
-    width: 40px; height: 40px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,.1); border-radius: 50%;
-    border: none;
-  }
-</style>
-</head>
-<body>
-
-<!-- ── SYNC BAR ── -->
-<div class="sync-bar" id="sync-bar"></div>
-
-<!-- ── BOTTOM NAV ── -->
-<div class="bnav">
-  <div class="bnav-item active" onclick="go('home')">
-    <div class="bi">📊</div><div class="bl">總覽</div>
-  </div>
-  <div class="bnav-item" onclick="go('new')">
-    <div class="bi">✏️</div><div class="bl">記錄</div>
-  </div>
-  <div class="bnav-item" onclick="go('history')">
-    <div class="bi">📋</div><div class="bl">歷史</div>
-  </div>
-  <div class="bnav-item" onclick="go('review')">
-    <div class="bi">🔍</div><div class="bl">檢討</div>
-  </div>
-</div>
-
-<!-- ── TOAST ── -->
-<div class="toast" id="toast">✓ 已儲存</div>
-
-<!-- ── LIGHTBOX ── -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="截圖預覽">
-</div>
-
-<!-- ════════ HOME ════════ -->
-<div class="page active" id="page-home">
-  <div class="ph">
-    <div>
-      <div class="ph-title">交易總覽</div>
-      <div class="ph-sub" id="home-sub">
-        <span class="conn-dot loading" id="conn-dot"></span>
-        <span id="conn-txt">連線中...</span>
-      </div>
-    </div>
-    <div class="ph-right" id="home-date"></div>
-  </div>
-
-  <!-- stats 2x2 -->
-  <div class="stats-grid">
-    <div class="stat">
-      <div class="stat-l">勝率</div>
-      <div class="stat-v" id="h-wr">—</div>
-      <div class="stat-s" id="h-wl">—</div>
-    </div>
-    <div class="stat">
-      <div class="stat-l">風報比</div>
-      <div class="stat-v gold-c" id="h-rr">—</div>
-      <div class="stat-s">平均獲利/虧損</div>
-    </div>
-    <div class="stat">
-      <div class="stat-l">累計損益</div>
-      <div class="stat-v" id="h-total">$0</div>
-      <div class="stat-s" id="h-month">本月 $0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-l">期望值/筆</div>
-      <div class="stat-v" id="h-ev">—</div>
-      <div class="stat-s">正值才能長期獲利</div>
-    </div>
-  </div>
-
-  <!-- monthly bar chart -->
-  <div class="month-bars">
-    <div class="mb-title">📅 近6個月損益</div>
-    <div id="month-chart"></div>
-  </div>
-
-  <!-- signal accuracy -->
-  <div class="sig-row">
-    <div class="sig-header">🎯 訊號準確率（勾選了這個訊號的筆，勝率是多少）</div>
-    <div id="sig-accuracy"></div>
-  </div>
-
-  <!-- errors -->
-  <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:12px;margin-top:4px">最常犯的錯誤</div>
-  <div class="err-grid" id="err-grid"></div>
-
-  <!-- recent -->
-  <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:12px;margin-top:8px">最近交易</div>
-  <div class="recent-list" id="recent-list"></div>
-</div>
-
-<!-- ════════ NEW ════════ -->
-<div class="page" id="page-new">
-  <div class="ph">
-    <div>
-      <div class="ph-title">記錄交易</div>
-      <div class="ph-sub">進場前填，出場後再補</div>
-    </div>
-  </div>
-  <div class="form-wrap">
-
-    <!-- 基本 -->
-    <div class="form-section">
-      <div class="fs-title">📌 基本資訊</div>
-      <div class="field"><label>日期</label><input type="date" id="f-date"></div>
-
-      <!-- 三大類別 -->
-      <div class="field" style="padding-bottom:4px"><label>交易類別</label></div>
-      <div class="cat-tabs">
-        <div class="cat-btn active-cat" id="cat-tw" onclick="setCat('tw')">
-          <span class="cat-icon">🇹🇼</span>台股
-        </div>
-        <div class="cat-btn" id="cat-fut" onclick="setCat('fut')">
-          <span class="cat-icon">📈</span>台指期
-        </div>
-        <div class="cat-btn" id="cat-os" onclick="setCat('os')">
-          <span class="cat-icon">🌐</span>海外期貨
-        </div>
-      </div>
-
-      <div class="field" style="padding-top:12px;padding-bottom:4px"><label>快選標的</label></div>
-      <div class="sym-presets" id="sym-presets"></div>
-
-      <div class="field"><label>標的名稱（可直接輸入）</label>
-        <input type="text" id="f-sym" placeholder="輸入或點上方快選">
-      </div>
-
-      <div class="field">
-        <label>方向</label>
-        <div class="dir-toggle">
-          <div class="dir-btn active-long" id="btn-long" onclick="setDir('long')">▲ 做多</div>
-          <div class="dir-btn" id="btn-short" onclick="setDir('short')">▼ 做空</div>
-        </div>
-      </div>
-      <div class="field"><label>進場價格</label><input type="number" id="f-entry" placeholder="0" inputmode="decimal"></div>
-      <div class="field"><label>停損價格</label><input type="number" id="f-stop" placeholder="0" inputmode="decimal"></div>
-      <div class="field"><label>部位大小（口/張）</label><input type="number" id="f-size" placeholder="1" inputmode="decimal"></div>
-    </div>
-
-    <!-- 訊號確認 -->
-    <div class="form-section">
-      <div class="fs-title">✅ 進場訊號確認（勾選有的）</div>
-      <div class="chip-group" id="sig-chips">
-        <div class="chip-btn" data-val="ma_align" onclick="toggleChip(this,'bull')">MA 三線排列</div>
-        <div class="chip-btn" data-val="macd_zero" onclick="toggleChip(this,'bull')">MACD 正確軸側</div>
-        <div class="chip-btn" data-val="macd_flip" onclick="toggleChip(this,'bull')">紅柱翻正</div>
-        <div class="chip-btn" data-val="stop_k" onclick="toggleChip(this,'bull')">止跌K棒</div>
-        <div class="chip-btn" data-val="close_ma" onclick="toggleChip(this,'bull')">站上15MA</div>
-        <div class="chip-btn" data-val="diverge" onclick="toggleChip(this,'bull')">背離訊號</div>
-      </div>
-      <div class="field"><label>進場理由（一句話）</label><textarea id="f-reason" placeholder="例：日K多頭，60K MACD紅柱翻出，收盤站上15MA，1/3試多"></textarea></div>
-    </div>
-
-    <!-- 截圖上傳 -->
-    <div class="form-section">
-      <div class="fs-title">📸 K線截圖（可貼進場和出場圖）</div>
-      <div class="img-upload-area" onclick="document.getElementById('f-imgs').click()">
-        <input type="file" id="f-imgs" accept="image/*" multiple capture="environment" onchange="previewImgs(this)">
-        <div class="img-upload-icon">📷</div>
-        <div class="img-upload-text">點此上傳截圖</div>
-        <div class="img-upload-sub">可一次選多張・支援從相簿選取</div>
-      </div>
-      <div class="img-previews" id="img-previews"></div>
-    </div>
-
-    <!-- 出場（可後補） -->
-    <div class="form-section">
-      <div class="fs-title">🚪 出場資訊（可出場後再補）</div>
-      <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
-      <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
-      <div class="field">
-        <label>出場原因</label>
-        <select id="f-exit-r">
-          <option value="">— 選擇 —</option>
-          <option value="stop">停損觸發</option>
-          <option value="ma15">15MA跌破</option>
-          <option value="diverge">頂背離</option>
-          <option value="target">目標達到</option>
-          <option value="holding">持倉中</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 錯誤 + 檢討 -->
-    <div class="form-section">
-      <div class="fs-title">❌ 這筆犯了哪些錯？</div>
-      <div class="chip-group" id="err-chips">
-        <div class="chip-btn" data-val="early" onclick="toggleChip(this,'bear')">進場太早</div>
-        <div class="chip-btn" data-val="late_exit" onclick="toggleChip(this,'bear')">出場太晚</div>
-        <div class="chip-btn" data-val="no_stop" onclick="toggleChip(this,'bear')">沒執行停損</div>
-        <div class="chip-btn" data-val="oversize" onclick="toggleChip(this,'bear')">倉位太重</div>
-        <div class="chip-btn" data-val="revenge" onclick="toggleChip(this,'bear')">報復性交易</div>
-        <div class="chip-btn" data-val="no_signal" onclick="toggleChip(this,'bear')">無訊號進場</div>
-      </div>
-      <div class="field"><label>事後檢討</label><textarea id="f-review" placeholder="例：黑柱縮小就進了，沒等紅柱翻正。下次一定等訊號完成再進。"></textarea></div>
-    </div>
-
-    <button class="btn-save" onclick="saveTrade()">💾 儲存這筆交易</button>
-    <button class="btn-reset" onclick="resetForm()">清除重填</button>
-  </div>
-</div>
-
-<!-- ════════ HISTORY ════════ -->
-<div class="page" id="page-history">
-  <div class="ph">
-    <div>
-      <div class="ph-title">歷史紀錄</div>
-      <div class="ph-sub" id="hist-sub">共 0 筆</div>
-    </div>
-  </div>
-  <div class="filter-row">
-    <div class="fb active" data-f="all" onclick="setFilter(this,'all')">全部</div>
-    <div class="fb" data-f="win"  onclick="setFilter(this,'win')">✅ 獲利</div>
-    <div class="fb" data-f="loss" onclick="setFilter(this,'loss')">❌ 虧損</div>
-    <div class="fb" data-f="open" onclick="setFilter(this,'open')">📌 持倉</div>
-  </div>
-  <div id="history-list"></div>
-</div>
-
-<!-- ════════ REVIEW ════════ -->
-<div class="page" id="page-review">
-  <div class="ph">
-    <div>
-      <div class="ph-title">錯誤檢討</div>
-      <div class="ph-sub">有填檢討或有勾錯誤的筆</div>
-    </div>
-  </div>
-  <div id="review-list"></div>
-</div>
-
-<script>
-// ── STATE ──
-let currentDir = 'long';
-let histFilter = 'all';
-let currentCat = 'tw';
-let pendingImages = [];
-let allTrades = []; // in-memory cache from Firestore
-let unsubscribe = null;
-
-// ── CATEGORY PRESETS ──
-const catPresets = {
-  tw:  ['台積電 2330','聯發科 2454','鴻海 2317','廣達 2382','台達電 2308','其他台股'],
-  fut: ['台指期 近月','台指期 次月','小台指 近月','電子期','金融期'],
-  os:  ['ES 標普期貨','NQ 那指期貨','YM 道瓊期貨','GC 黃金期貨','CL 原油期貨','其他海外']
-};
-
-function setCat(cat) {
-  currentCat = cat;
-  ['tw','fut','os'].forEach(c => {
-    document.getElementById('cat-' + c).className = 'cat-btn' + (c === cat ? ' active-cat' : '');
-  });
-  renderPresets();
-}
-
-function renderPresets() {
-  const el = document.getElementById('sym-presets');
-  el.innerHTML = catPresets[currentCat].map(s =>
-    `<div class="sym-preset" onclick="pickSym(this)">${s}</div>`
-  ).join('');
-}
-
-function pickSym(el) {
-  document.getElementById('f-sym').value = el.textContent;
-}
-
-// ── IMAGE HANDLING ──
-function previewImgs(input) {
-  const files = Array.from(input.files);
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      pendingImages.push(e.target.result);
-      renderPreviews();
-    };
-    reader.readAsDataURL(file);
-  });
-  input.value = '';
-}
-
-function renderPreviews() {
-  const el = document.getElementById('img-previews');
-  el.innerHTML = pendingImages.map((src, i) => `
-    <div class="img-thumb">
-      <img src="${src}" onclick="openLightbox('${src}')">
-      <button class="del-img" onclick="removeImg(${i})">✕</button>
-    </div>`
-  ).join('');
-}
-
-function removeImg(i) {
-  pendingImages.splice(i, 1);
-  renderPreviews();
-}
-
-function openLightbox(src) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox').classList.add('open');
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-}
-
-// ── SYNC STATUS ──
-function setConn(state, msg) {
-  const dot = document.getElementById('conn-dot');
-  const txt = document.getElementById('conn-txt');
-  if (!dot || !txt) return;
-  dot.className = 'conn-dot ' + state;
-  txt.textContent = msg;
-}
-
-function showSyncBar() {
-  const bar = document.getElementById('sync-bar');
-  bar.className = 'sync-bar active';
-  setTimeout(() => bar.className = 'sync-bar done', 800);
-  setTimeout(() => bar.className = 'sync-bar', 1400);
-}
-
-// ── NAV ──
-function go(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  const ids = ['home','new','history','review'];
-  document.querySelectorAll('.bnav-item')[ids.indexOf(id)].classList.add('active');
-  if (id !== 'new') renderPage(id);
-}
-
-// ── DIRECTION ──
-function setDir(d) {
-  currentDir = d;
-  document.getElementById('btn-long').className  = 'dir-btn' + (d==='long'  ? ' active-long'  : '');
-  document.getElementById('btn-short').className = 'dir-btn' + (d==='short' ? ' active-short' : '');
-}
-
-// ── CHIP TOGGLE ──
-function toggleChip(el, type) {
-  el.classList.toggle('on-' + type);
-}
-
-function getChips(groupId) {
-  return [...document.querySelectorAll(`#${groupId} .chip-btn.on-bull, #${groupId} .chip-btn.on-bear`)]
-    .map(c => c.dataset.val);
-}
-
-// ── HELPERS ──
-const exitLabel = { stop:'停損', ma15:'15MA跌破', diverge:'頂背離', target:'目標達到', holding:'持倉中', '':'—' };
-const errLabel  = { early:'進場太早', late_exit:'出場太晚', no_stop:'沒執行停損', oversize:'倉位太重', revenge:'報復交易', no_signal:'無訊號進場' };
-const sigLabel  = { ma_align:'MA三線排列', macd_zero:'MACD軸側正確', macd_flip:'紅柱翻正', stop_k:'止跌K棒', close_ma:'站上15MA', diverge:'背離訊號' };
-
-function calcPnl(t) {
-  if (!t.exitPrice || !t.entryPrice) return null;
-  const d = t.dir === 'long' ? t.exitPrice - t.entryPrice : t.entryPrice - t.exitPrice;
-  return Math.round(d * (t.size || 1) * 100) / 100;
-}
-
-function fmtMoney(n) {
-  if (n === null || n === undefined) return '—';
-  const s = n >= 0 ? '+$' : '-$';
-  return s + Math.abs(Math.round(n)).toLocaleString();
-}
-
-// ── SAVE ──
-async function saveTrade() {
-  const sym = document.getElementById('f-sym').value.trim();
-  const entry = parseFloat(document.getElementById('f-entry').value);
-  const date = document.getElementById('f-date').value;
-  if (!sym || !entry || !date) { alert('請填寫日期、商品和進場價格'); return; }
-
-  const t = {
-    id: Date.now().toString(),
-    date,
-    sym,
-    cat: currentCat,
-    dir: currentDir,
-    entryPrice: entry,
-    stopPrice:  parseFloat(document.getElementById('f-stop').value) || null,
-    size:       parseFloat(document.getElementById('f-size').value) || 1,
-    exitDate:   document.getElementById('f-exit-date').value || null,
-    exitPrice:  parseFloat(document.getElementById('f-exit').value) || null,
-    exitReason: document.getElementById('f-exit-r').value || '',
-    reason:     document.getElementById('f-reason').value.trim(),
-    review:     document.getElementById('f-review').value.trim(),
-    signals:    getChips('sig-chips'),
-    errors:     getChips('err-chips'),
-    images:     [...pendingImages],
-    createdAt:  Date.now(),
-  };
-
-  try {
-    setConn('loading', '儲存中...');
-    if (window._fb) {
-      await window._fb.add(t);
-      showSyncBar();
-      setConn('online', '已同步 ☁️');
-    } else {
-      // fallback localStorage
-      const data = JSON.parse(localStorage.getItem('tj_v2') || '[]');
-      data.push(t);
-      localStorage.setItem('tj_v2', JSON.stringify(data));
-      allTrades = data;
-    }
-    showToast('✓ 已儲存並同步！');
-    resetForm();
-    setTimeout(() => go('home'), 800);
-  } catch(e) {
-    console.error(e);
-    showToast('⚠️ 儲存失敗，請檢查網路');
-    setConn('offline', '離線');
-  }
-}
-
-// ── RESET FORM ──
-function resetForm() {
-  ['f-sym','f-entry','f-stop','f-size','f-exit','f-reason','f-review'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('f-exit-date').value = '';
-  document.getElementById('f-exit-r').value = '';
-  setDir('long');
-  setCat('tw');
-  document.querySelectorAll('.chip-btn').forEach(c => c.className = 'chip-btn');
-  pendingImages = [];
-  renderPreviews();
-}
-
-// ── TOAST ──
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ── DELETE ──
-async function deleteTrade(docId) {
-  if (!confirm('刪除這筆紀錄？')) return;
-  try {
-    if (window._fb) {
-      await window._fb.del(docId);
-      showSyncBar();
-    } else {
-      allTrades = allTrades.filter(t => t._docId !== docId);
-      localStorage.setItem('tj_v2', JSON.stringify(allTrades));
-    }
-    renderPage('history');
-    renderPage('home');
-  } catch(e) {
-    showToast('⚠️ 刪除失敗');
-  }
-}
-
-// ── EXPAND ──
-function toggleExpand(id) {
-  const el = document.getElementById('tcf-' + id);
-  if (el) el.classList.toggle('open');
-}
-
-// ── FILTER ──
-function setFilter(el, f) {
-  histFilter = f;
-  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  renderHistoryList();
-}
-
-// ════════ RENDER ════════
-function renderPage(id) {
-  if (id === 'home') renderHome();
-  if (id === 'history') renderHistory();
-  if (id === 'review') renderReview();
-}
-
-// ── HOME ──
-function renderHome() {
-  const all = allTrades;
-  const now = new Date();
-  const countEl = document.getElementById('conn-txt');
-  if (countEl) countEl.textContent = `共 ${all.length} 筆 · 已同步 ☁️`;
-
-  const closed = all.filter(t => t.exitPrice);
-  const pnls = closed.map(calcPnl).filter(p => p !== null);
-  const wins = pnls.filter(p => p > 0);
-  const losses = pnls.filter(p => p < 0);
-  const total = pnls.reduce((a,b) => a+b, 0);
-  const wr = pnls.length ? wins.length / pnls.length * 100 : null;
-  const avgW = wins.length ? wins.reduce((a,b)=>a+b,0)/wins.length : 0;
-  const avgL = losses.length ? Math.abs(losses.reduce((a,b)=>a+b,0)/losses.length) : 0;
-  const rr = avgL ? avgW / avgL : null;
-  const ev = pnls.length ? total / pnls.length : null;
-
-  const ms = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const mPnl = closed.filter(t=>(t.exitDate||t.date||'').startsWith(ms)).map(calcPnl).filter(p=>p!==null).reduce((a,b)=>a+b,0);
-
-  const wrEl = document.getElementById('h-wr');
-  wrEl.textContent = wr !== null ? wr.toFixed(1)+'%' : '—';
-  wrEl.className = 'stat-v ' + (wr===null?'':wr>=50?'bull-c':'bear-c');
-  document.getElementById('h-wl').textContent = pnls.length ? `${wins.length}勝 / ${losses.length}敗` : '—';
-
-  const rrEl = document.getElementById('h-rr');
-  rrEl.textContent = rr !== null ? '1:'+rr.toFixed(2) : '—';
-  rrEl.className = 'stat-v ' + (rr===null?'gold-c':rr>=1.5?'bull-c':rr>=1?'gold-c':'bear-c');
-
-  const totEl = document.getElementById('h-total');
-  totEl.textContent = '$' + Math.round(total).toLocaleString();
-  totEl.className = 'stat-v ' + (total>=0?'bull-c':'bear-c');
-
-  const mEl = document.getElementById('h-month');
-  mEl.textContent = '本月 ' + fmtMoney(mPnl);
-  mEl.style.color = mPnl >= 0 ? 'var(--bull)' : 'var(--bear)';
-
-  const evEl = document.getElementById('h-ev');
-  evEl.textContent = ev !== null ? fmtMoney(ev) : '—';
-  evEl.className = 'stat-v ' + (ev===null?'':ev>=0?'bull-c':'bear-c');
-
-  renderMonthChart(closed);
-  renderSigAccuracy(closed);
-  renderErrGrid(all);
-
-  const recent = all.slice(-4).reverse();
-  const rl = document.getElementById('recent-list');
-  if (!recent.length) {
-    rl.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>還沒有紀錄<br>點「記錄」開始你的第一筆</p></div>`;
-    return;
-  }
-  rl.innerHTML = recent.map(t => miniCard(t)).join('');
-}
-
-function miniCard(t) {
-  const pnl = calcPnl(t);
-  const cls = pnl === null ? 'open' : pnl >= 0 ? 'win' : 'loss';
-  const pnlTxt = pnl === null ? '<span class="tc-pnl neu">持倉</span>' :
-    `<span class="tc-pnl ${pnl>=0?'pos':'neg'}">${fmtMoney(pnl)}</span>`;
-  const catIcon = {tw:'🇹🇼',fut:'📈',os:'🌐'}[t.cat||'tw'] || '';
-  return `<div class="trade-card ${cls}">
-    <div class="tc-dir ${t.dir}">${t.dir==='long'?'▲':'▼'}</div>
-    <div class="tc-main"><div class="tc-sym">${catIcon} ${t.sym}</div><div class="tc-date">${t.date||''}</div></div>
-    ${pnlTxt}
-  </div>`;
-}
-
-function renderMonthChart(closed) {
-  const now = new Date();
-  const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const label = `${d.getMonth()+1}月`;
-    const sum = closed.filter(t=>(t.exitDate||t.date||'').startsWith(key)).map(calcPnl).filter(p=>p!==null).reduce((a,b)=>a+b,0);
-    months.push({ label, sum });
-  }
-  const max = Math.max(...months.map(m=>Math.abs(m.sum)), 1);
-  const el = document.getElementById('month-chart');
-  el.innerHTML = months.map(m => {
-    const w = Math.round(Math.abs(m.sum) / max * 100);
-    const cls = m.sum >= 0 ? 'pos' : 'neg';
-    const color = m.sum >= 0 ? 'var(--bull)' : 'var(--bear)';
-    return `<div class="mb-row">
-      <div class="mb-label">${m.label}</div>
-      <div class="mb-bar-wrap"><div class="mb-bar ${cls}" style="width:${w}%"></div></div>
-      <div class="mb-val" style="color:${color}">${m.sum===0?'$0':fmtMoney(m.sum)}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderSigAccuracy(closed) {
-  const sigs = ['ma_align','macd_zero','macd_flip','stop_k','close_ma','diverge'];
-  const el = document.getElementById('sig-accuracy');
-  if (!closed.length) {
-    el.innerHTML = `<div style="padding:16px;color:var(--dim);font-size:13px;text-align:center">資料不足</div>`;
-    return;
-  }
-  el.innerHTML = sigs.map(s => {
-    const withSig = closed.filter(t=>(t.signals||[]).includes(s));
-    if (!withSig.length) return '';
-    const winWithSig = withSig.filter(t=>{ const p=calcPnl(t); return p!==null&&p>0; });
-    const pct = Math.round(winWithSig.length / withSig.length * 100);
-    const c = pct >= 60 ? 'var(--bull)' : pct >= 40 ? 'var(--gold)' : 'var(--bear)';
-    return `<div class="sig-item">
-      <div class="sig-name">${sigLabel[s]}</div>
-      <div class="sig-bar-wrap"><div class="sig-bar" style="width:${pct}%;background:${c}"></div></div>
-      <div class="sig-pct" style="color:${c}">${pct}%</div>
-    </div>`;
-  }).join('');
-}
-
-function renderErrGrid(all) {
-  const ec = { early:0, late_exit:0, no_stop:0, oversize:0, revenge:0, no_signal:0 };
-  all.forEach(t => (t.errors||[]).forEach(e => { if(e in ec) ec[e]++; }));
-  const top4 = [['early','進場太早'],['late_exit','出場太晚'],['no_stop','沒執行停損'],['no_signal','無訊號進場']];
-  document.getElementById('err-grid').innerHTML = top4.map(([k,l]) =>
-    `<div class="err-card"><div class="err-n">${ec[k]}</div><div class="err-l">${l}</div></div>`
-  ).join('');
-}
-
-function renderHistory() {
-  document.getElementById('hist-sub').textContent = `共 ${allTrades.length} 筆`;
-  renderHistoryList();
-}
-
-function renderHistoryList() {
-  const filtered = allTrades.slice().reverse().filter(t => {
-    if (histFilter === 'all') return true;
-    const p = calcPnl(t);
-    if (histFilter === 'win')  return p !== null && p > 0;
-    if (histFilter === 'loss') return p !== null && p <= 0;
-    if (histFilter === 'open') return p === null;
-    return true;
-  });
-
-  const el = document.getElementById('history-list');
-  if (!filtered.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>沒有符合的紀錄</p></div>`;
-    return;
-  }
-
-  el.innerHTML = filtered.map(t => {
-    const pnl = calcPnl(t);
-    const cls = pnl===null?'open':pnl>0?'win':'loss';
-    const pnlStr = pnl===null?'<span style="color:var(--gold)">持倉中</span>':
-      `<span style="${pnl>=0?'color:var(--bull)':'color:var(--bear)'};font-family:var(--mono);font-weight:700">${fmtMoney(pnl)}</span>`;
-    const errTags = (t.errors||[]).map(e=>`<span class="err-tag">${errLabel[e]||e}</span>`).join('');
-    const sigTags = (t.signals||[]).map(s=>`<span class="sig-tag">${sigLabel[s]||s}</span>`).join('');
-    const docId = t._docId || t.id;
-    return `<div class="trade-card-full">
-      <div class="tcf-header" onclick="toggleExpand('${docId}')">
-        <span class="tc-dir ${t.dir}">${t.dir==='long'?'▲':'▼'}</span>
-        <div style="flex:1">
-          <div style="font-size:15px;font-weight:700">${t.sym}</div>
-          <div style="font-size:12px;color:var(--soft)">${t.date||''} ${t.exitDate?'→ '+t.exitDate:''}</div>
-        </div>
-        ${pnlStr}
-        <span style="color:var(--dim);margin-left:8px">›</span>
-      </div>
-      <div class="tcf-body" id="tcf-${docId}">
-        <div class="tcf-row"><span class="tcf-key">進場</span><span class="tcf-val">${t.entryPrice} → 停損 ${t.stopPrice||'—'}</span></div>
-        <div class="tcf-row"><span class="tcf-key">出場</span><span class="tcf-val">${t.exitPrice||'持倉中'} （${exitLabel[t.exitReason]||'—'}）</span></div>
-        ${t.reason?`<div class="tcf-row"><span class="tcf-key">進場理由</span><span class="tcf-val">${t.reason}</span></div>`:''}
-        ${sigTags?`<div class="tcf-row"><span class="tcf-key">訊號</span><span class="tcf-val sig-tags">${sigTags}</span></div>`:''}
-        ${errTags?`<div class="tcf-row"><span class="tcf-key">錯誤</span><span class="tcf-val err-tags">${errTags}</span></div>`:''}
-        ${t.review?`<div class="tcf-row"><span class="tcf-key">檢討</span><span class="tcf-val">${t.review}</span></div>`:''}
-        ${(t.images&&t.images.length)?`
-        <div class="tcf-row">
-          <span class="tcf-key">截圖</span>
-          <span class="tcf-val">
-            <div class="hist-imgs">${t.images.map(src=>`<div class="hist-img" onclick="openLightbox('${src}')"><img src="${src}"></div>`).join('')}</div>
-          </span>
-        </div>`:''}
-        <div class="tcf-del" onclick="deleteTrade('${docId}')">🗑 刪除這筆紀錄</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderReview() {
-  const all = allTrades.filter(t=>t.review||(t.errors&&t.errors.length)).slice().reverse();
-  const el = document.getElementById('review-list');
-  if (!all.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>還沒有可檢討的紀錄<br>出場後回來填「犯的錯誤」和「事後檢討」</p></div>`;
-    return;
-  }
-  el.innerHTML = all.map(t => {
-    const pnl = calcPnl(t);
-    const errTags = (t.errors||[]).map(e=>`<span class="err-tag">${errLabel[e]||e}</span>`).join('') || '<span style="color:var(--dim);font-size:12px">無</span>';
-    const sigTags = (t.signals||[]).map(s=>`<span class="sig-tag">${sigLabel[s]||s}</span>`).join('') || '<span style="color:var(--dim);font-size:12px">無</span>';
-    return `<div class="review-card">
-      <div class="rc-head">
-        <span class="tc-dir ${t.dir}">${t.dir==='long'?'▲':'▼'}</span>
-        <div style="flex:1">
-          <div style="font-size:15px;font-weight:700">${t.sym}</div>
-          <div style="font-size:12px;color:var(--soft)">${t.date||''}</div>
-        </div>
-        <span style="font-family:var(--mono);font-weight:700;${pnl===null?'color:var(--gold)':pnl>=0?'color:var(--bull)':'color:var(--bear)'}">${pnl===null?'持倉':fmtMoney(pnl)}</span>
-      </div>
-      <div class="rc-body">
-        <div class="rc-field"><label>進場訊號</label><div class="sig-tags">${sigTags}</div></div>
-        <div class="rc-field"><label>犯的錯誤</label><div class="err-tags">${errTags}</div></div>
-        ${t.reason?`<div class="rc-field"><label>進場理由</label><p>${t.reason}</p></div>`:''}
-        ${t.review?`<div class="rc-field"><label>事後檢討</label><p>${t.review}</p></div>`:''}
-        ${(t.images&&t.images.length)?`
-        <div class="rc-field">
-          <label>截圖</label>
-          <div class="hist-imgs">${t.images.map(src=>`<div class="hist-img" onclick="openLightbox('${src}')"><img src="${src}"></div>`).join('')}</div>
-        </div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── INIT ──
-document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-renderPresets();
-
-// Wait for Firebase to be ready, then start realtime listener
-window.addEventListener('fb-ready', () => {
-  setConn('loading', '連線中...');
-  unsubscribe = window._fb.listen(trades => {
-    allTrades = trades;
-    setConn('online', `共 ${trades.length} 筆 · 已同步 ☁️`);
-    document.getElementById('conn-dot').className = 'conn-dot online';
-    renderPage('home');
-    renderPage('history');
-    renderPage('review');
-  });
-});
-
-// Fallback if Firebase fails to load
-setTimeout(() => {
-  if (allTrades.length === 0 && !window._fb) {
-    setConn('offline', '離線模式');
-    const local = JSON.parse(localStorage.getItem('tj_v2') || '[]');
-    allTrades = local;
-    renderHome();
-  }
-}, 5000);
-</script>
-</body>
-</html>
+  </body>
