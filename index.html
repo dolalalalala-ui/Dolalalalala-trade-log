@@ -461,6 +461,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .ecr-bad{background:rgba(255,77,106,.1);color:var(--bear)}
 .ecr-arrow{color:var(--dim);font-size:12px}
 
+/* PNL TOGGLE */
+.pnl-wrap{position:relative}
+.pnl-sign-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:var(--s3);border:1px solid var(--line);border-radius:8px;
+  color:var(--soft);font-size:14px;font-weight:700;padding:6px 12px;
+  cursor:pointer;font-family:var(--mono);transition:all .15s;z-index:1}
+.pnl-sign-btn.neg{background:rgba(255,77,106,.15);border-color:var(--bear);color:var(--bear)}
+.pnl-sign-btn.pos{background:rgba(0,214,143,.1);border-color:var(--bull);color:var(--bull)}
+
 /* RISK CALCULATOR */
 .risk-box{margin:0 16px 14px;background:var(--s3);border:1px solid var(--line);
   border-radius:10px;padding:12px 14px;display:none}
@@ -599,7 +608,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <div class="field" style="padding-right:0"><label>出場價格</label>
     <input type="number" id="e-exit" placeholder="0" inputmode="decimal"></div>
   <div class="field" style="padding-left:0"><label>實際損益</label>
-    <input type="number" id="e-pnl-amt" placeholder="例：5000 或 -3000" inputmode="decimal" pattern="-?[0-9]*"></div>
+    <div class="pnl-wrap">
+      <input type="number" id="e-pnl-amt" placeholder="輸入金額" inputmode="decimal"
+        style="padding-right:80px">
+      <button type="button" class="pnl-sign-btn pos" id="e-pnl-sign"
+        onclick="togglePnlSign('e-pnl-amt','e-pnl-sign')">+獲利</button>
+    </div></div>
 </div>
 <div class="field"><label>出場原因</label>
   <select id="e-exit-r">
@@ -924,8 +938,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
   <div class="field"><label>出場日期</label><input type="date" id="f-exit-date"></div>
   <div class="field"><label>出場價格</label><input type="number" id="f-exit" placeholder="未出場可空白" inputmode="decimal"></div>
-  <div class="field"><label>實際損益（獲利填正數，虧損填負數）</label>
-    <input type="text" id="f-pnl-amt" placeholder="例：5000 或 -3000" inputmode="decimal" pattern="-?[0-9]*">
+  <div class="field"><label>實際損益</label>
+    <div class="pnl-wrap">
+      <input type="number" id="f-pnl-amt" placeholder="輸入金額" inputmode="decimal"
+        style="padding-right:80px">
+      <button type="button" class="pnl-sign-btn pos" id="f-pnl-sign"
+        onclick="togglePnlSign('f-pnl-amt','f-pnl-sign')">+獲利</button>
+    </div>
   </div>
   <div class="field"><label>出場原因</label>
     <select id="f-exit-r">
@@ -1600,7 +1619,13 @@ async function saveTrade() {
     exitDate:   document.getElementById('f-exit-date').value || null,
     holdDays:   calcHoldDays(date, document.getElementById('f-exit-date').value || null),
     exitPrice:  parseFloat(document.getElementById('f-exit').value) || null,
-    pnlAmt:     (pnlRaw !== '' && pnlRaw !== null && pnlRaw !== undefined) ? Number(pnlRaw) : null,
+    pnlAmt:     (function(){
+      var raw = document.getElementById('f-pnl-amt').value;
+      if (raw === '' || raw === null) return null;
+      var n = Math.abs(parseFloat(raw));
+      var sign = document.getElementById('f-pnl-sign');
+      return (sign && sign.classList.contains('neg')) ? -n : n;
+    })(),
     exitReason: document.getElementById('f-exit-r').value || '',
     reason:     document.getElementById('f-reason').value.trim(),
     review:     document.getElementById('f-review').value.trim(),
@@ -1647,6 +1672,9 @@ function resetForm() {
   if (si) si.value = '';
   const rb = document.getElementById('risk-box');
   if (rb) rb.classList.remove('show');
+  // reset pnl sign button
+  const fsb = document.getElementById('f-pnl-sign');
+  if (fsb) { fsb.textContent = '+獲利'; fsb.className = 'pnl-sign-btn pos'; }
   setDir('long'); setCat('tw');
   currentMkt = '';
   ['trend','counter','range'].forEach(k => {
@@ -1661,6 +1689,43 @@ function resetForm() {
   const fi2 = document.getElementById('f-imgs-camera');
   if(fi1) fi1.value = '';
   if(fi2) fi2.value = '';
+}
+
+// ── PNL SIGN TOGGLE ──
+function togglePnlSign(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const val = parseFloat(inp.value) || 0;
+  if (btn.classList.contains('pos')) {
+    // switch to negative
+    btn.textContent = '-虧損';
+    btn.classList.remove('pos');
+    btn.classList.add('neg');
+    if (val > 0) inp.value = -val;
+  } else {
+    // switch to positive
+    btn.textContent = '+獲利';
+    btn.classList.remove('neg');
+    btn.classList.add('pos');
+    if (val < 0) inp.value = Math.abs(val);
+  }
+}
+
+// sync sign button when openEdit loads existing value
+function syncPnlSign(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp || !btn) return;
+  const val = parseFloat(inp.value);
+  if (!isNaN(val) && val < 0) {
+    btn.textContent = '-虧損';
+    btn.classList.remove('pos');
+    btn.classList.add('neg');
+  } else {
+    btn.textContent = '+獲利';
+    btn.classList.remove('neg');
+    btn.classList.add('pos');
+  }
 }
 
 function setDir(d) {
@@ -1760,7 +1825,8 @@ function openEdit(docId) {
   document.getElementById('e-target').value    = t.targetPrice || '';
   document.getElementById('e-exit-date').value = t.exitDate || '';
   document.getElementById('e-exit').value      = t.exitPrice || '';
-  document.getElementById('e-pnl-amt').value   = (t.pnlAmt !== null && t.pnlAmt !== undefined) ? t.pnlAmt : '';
+  document.getElementById('e-pnl-amt').value   = (t.pnlAmt !== null && t.pnlAmt !== undefined) ? Math.abs(t.pnlAmt) : '';
+  if (t.pnlAmt !== null && t.pnlAmt !== undefined) syncPnlSign('e-pnl-amt','e-pnl-sign');
   document.getElementById('e-exit-r').value    = t.exitReason || '';
   document.getElementById('e-review').value    = t.review || '';
   setChips('e-err-chips', t.errors || []);
@@ -1841,7 +1907,13 @@ async function saveEdit() {
     exitDate:    document.getElementById('e-exit-date').value || null,
     holdDays:    calcHoldDays(baseT.date, document.getElementById('e-exit-date').value || null),
     exitPrice:   parseFloat(document.getElementById('e-exit').value) || null,
-    pnlAmt:      (pnlRaw !== '' && pnlRaw !== null && pnlRaw !== undefined) ? Number(pnlRaw) : null,
+    pnlAmt:      (function(){
+      var raw = document.getElementById('e-pnl-amt').value;
+      if (raw === '' || raw === null) return null;
+      var n = Math.abs(parseFloat(raw));
+      var sign = document.getElementById('e-pnl-sign');
+      return (sign && sign.classList.contains('neg')) ? -n : n;
+    })(),
     exitReason:  document.getElementById('e-exit-r').value || '',
     review:      document.getElementById('e-review').value.trim(),
     errors:      getChips('e-err-chips'),
